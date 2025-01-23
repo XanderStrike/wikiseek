@@ -310,6 +310,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Serve static files
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
 		handleSearch(w, r, searchTmpl, index)
 	})
