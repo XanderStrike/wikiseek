@@ -234,11 +234,10 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 			data.Error = err.Error()
 		} else {
 			output, err := exec.Command("pandoc", "-f", "mediawiki", "-t", "html").Input(strings.NewReader(text)).Output()
-				if err != nil {
-					data.Error = err.Error()
-				} else {
-					data.Content = template.HTML(output)
-				}
+			if err != nil {
+				data.Error = err.Error()
+			} else {
+				data.Content = template.HTML(output)
 			}
 		}
 	}
