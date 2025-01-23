@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Wikipedia Pages</title>
+    <style>
+        body { max-width: 800px; margin: 0 auto; padding: 20px; }
+        form { margin: 20px 0; }
+        input { margin: 5px 0; }
+        .results { margin-top: 20px; }
+        .result { padding: 10px; border-bottom: 1px solid #eee; }
+        .result h3 { margin: 0; }
+        .result a { text-decoration: none; color: #0645ad; }
+        .result a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Search Wikipedia Pages</h1>
+    
+    <form method="GET">
+        <div>
+            <input type="text" name="q" value="{{.Query}}" placeholder="Enter search terms..." style="width: 300px; padding: 5px;">
+            <input type="submit" value="Search">
+        </div>
+    </form>
+
+    {{if .Query}}
+        {{if .Results}}
+        <div class="results">
+            <h2>Found {{len .Results}} results for "{{.Query}}"</h2>
+            {{range .Results}}
+            <div class="result">
+                <h3><a href="/page/{{.Title | urlize}}">{{.Title}}</a></h3>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <p>No results found for "{{.Query}}"</p>
+        {{end}}
+    {{end}}
+</body>
+</html>

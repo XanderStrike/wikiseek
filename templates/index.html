@@ -11,33 +11,9 @@
 <body>
     <h1>Wikipedia Page Extractor</h1>
     
-    <form action="/extract" method="GET">
-        <div>
-            <label>Search titles:</label><br>
-            <input type="text" name="search" value="{{.Query}}">
-            <input type="submit" value="Search">
-        </div>
-    </form>
-
-    {{if .Results}}
-    <div>
-        <h2>Search Results</h2>
-        <table border="1" style="border-collapse: collapse; width: 100%;">
-            <tr>
-                <th>Title</th>
-                <th>Action</th>
-            </tr>
-            {{range .Results}}
-            <tr>
-                <td>{{.Title}}</td>
-                <td>
-                    <a href="/page/{{.Title | urlize}}">View</a>
-                </td>
-            </tr>
-            {{end}}
-        </table>
-    </div>
-    {{end}}
+    <p>
+        <a href="/search">Search Pages</a>
+    </p>
     
     {{if .Error}}
     <div style="color: red;">

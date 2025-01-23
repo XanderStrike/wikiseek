@@ -256,43 +256,19 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 	tmpl.Execute(w, data)
 }
 
-func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
+func handleSearch(w http.ResponseWriter, r *http.Request, searchTmpl *template.Template, index []IndexEntry) {
 	data := PageData{}
-
-	// Handle search
-	if query := r.FormValue("search"); query != "" {
+	
+	if query := r.FormValue("q"); query != "" {
 		data.Query = query
 		data.Results = searchIndex(index, query)
-		tmpl.Execute(w, data)
-		return
 	}
+	
+	searchTmpl.Execute(w, data)
+}
 
-	if r.Method == "POST" {
-		startOffset, _ := strconv.ParseInt(r.FormValue("start"), 10, 64)
-		endOffset, _ := strconv.ParseInt(r.FormValue("end"), 10, 64)
-		pageID, _ := strconv.Atoi(r.FormValue("id"))
-
-		if err := ExtractBzip2Range(inputFile, startOffset, endOffset); err != nil {
-			data.Error = err.Error()
-		} else {
-			text, err := ExtractPageText("output.xml", pageID)
-			if err != nil {
-				data.Error = err.Error()
-			} else {
-				if err := os.WriteFile("page.mediawiki", []byte(text), 0644); err != nil {
-					data.Error = err.Error()
-				} else {
-					output, err := exec.Command("pandoc", "-f", "mediawiki", "page.mediawiki").Output()
-					if err != nil {
-						data.Error = err.Error()
-					} else {
-						data.Content = template.HTML(output)
-					}
-				}
-			}
-		}
-	}
-
+func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
+	data := PageData{}
 	tmpl.Execute(w, data)
 }
 
@@ -324,6 +300,16 @@ func main() {
 		fmt.Printf("Error parsing template: %v\n", err)
 		os.Exit(1)
 	}
+
+	searchTmpl, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html")
+	if err != nil {
+		fmt.Printf("Error parsing template: %v\n", err)
+		os.Exit(1)
+	}
+
+	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+		handleSearch(w, r, searchTmpl, index)
+	})
 
 	http.HandleFunc("/page/", func(w http.ResponseWriter, r *http.Request) {
 		handlePage(w, r, *inputFile, tmpl, index)
