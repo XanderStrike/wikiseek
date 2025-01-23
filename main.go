@@ -19,16 +19,14 @@ import (
 
 // Page represents a Wikipedia page XML structure
 type Page struct {
-	Title    string    `xml:"title"`
-	ID       int       `xml:"id"`
-	Revision Revision  `xml:"revision"`
+	Title    string   `xml:"title"`
+	ID       int      `xml:"id"`
+	Revision Revision `xml:"revision"`
 }
 
 type Revision struct {
 	Text string `xml:"text"`
 }
-
-
 
 // ExtractBzip2Range extracts a range of bytes from a bzip2 file and writes them to output.xml
 func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
@@ -63,11 +61,11 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
 
 	// Create a buffer to hold compressed bytes
 	compressedData := make([]byte, endOffset-startOffset)
-	
+
 	// Read the compressed bytes into buffer
 	bytesToRead := endOffset - startOffset
 	fmt.Fprintf(os.Stderr, "Reading %d compressed bytes...\n", bytesToRead)
-	
+
 	n, err := io.ReadFull(f, compressedData)
 	if err != nil && err != io.EOF {
 		return fmt.Errorf("error reading compressed data: %v", err)
@@ -135,10 +133,10 @@ type IndexEntry struct {
 }
 
 type PageData struct {
-	Error    string
-	Content  template.HTML
-	Query    string
-	Results  []IndexEntry
+	Error   string
+	Content template.HTML
+	Query   string
+	Results []IndexEntry
 }
 
 func loadIndex(filename string) ([]IndexEntry, error) {
@@ -150,21 +148,21 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	var entries []IndexEntry
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	var allEntries []IndexEntry
-	
+
 	// First pass: collect all entries
 	for scanner.Scan() {
 		parts := strings.Split(scanner.Text(), ":")
 		if len(parts) != 3 {
 			continue
 		}
-		
+
 		startOffset, _ := strconv.ParseInt(parts[0], 10, 64)
 		pageID, _ := strconv.Atoi(parts[1])
-		
+
 		allEntries = append(allEntries, IndexEntry{
 			StartOffset: startOffset,
-			PageID:     pageID,
-			Title:      parts[2],
+			PageID:      pageID,
+			Title:       parts[2],
 		})
 	}
 
@@ -177,12 +175,11 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	for i := 0; i < len(allEntries); i++ {
 		entry := allEntries[i]
 		// Find next higher start offset
-		nextOffset := entry.StartOffset + 100000 // fallback
-		for _, next := range allEntries {
-			if next.StartOffset > entry.StartOffset {
-				if next.StartOffset < nextOffset {
-					nextOffset = next.StartOffset
-				}
+		var nextOffset int64
+		for j := i + 1; j < len(allEntries); j++ {
+			if allEntries[j].StartOffset > entry.StartOffset {
+				nextOffset = allEntries[j].StartOffset
+				break
 			}
 		}
 		entry.EndOffset = nextOffset
@@ -205,7 +202,7 @@ func searchIndex(entries []IndexEntry, query string) []IndexEntry {
 
 func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	data := PageData{}
-	
+
 	// Handle search
 	if query := r.FormValue("search"); query != "" {
 		data.Query = query
@@ -213,7 +210,7 @@ func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmp
 		tmpl.Execute(w, data)
 		return
 	}
-	
+
 	if r.Method == "POST" {
 		startOffset, _ := strconv.ParseInt(r.FormValue("start"), 10, 64)
 		endOffset, _ := strconv.ParseInt(r.FormValue("end"), 10, 64)
