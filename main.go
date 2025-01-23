@@ -142,15 +142,8 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	// Create bzip2 reader
 	bzReader := bzip2.NewReader(f)
 
-	// Read and decompress the entire index into memory
-	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, bzReader); err != nil {
-		return nil, fmt.Errorf("error decompressing index: %v", err)
-	}
-
-	var entries []IndexEntry
-	scanner := bufio.NewScanner(&buf)
 	var allEntries []IndexEntry
+	scanner := bufio.NewScanner(bzReader)
 	lineCount := 0
 
 	// First pass: collect all entries
