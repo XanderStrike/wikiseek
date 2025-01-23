@@ -314,7 +314,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	tmpl, err := template.ParseFiles("templates/index.html")
+	funcMap := template.FuncMap{
+		"urlize": func(s string) string {
+			return strings.ReplaceAll(s, " ", "_")
+		},
+	}
+	tmpl, err := template.New("index.html").Funcs(funcMap).ParseFiles("templates/index.html")
 	if err != nil {
 		fmt.Printf("Error parsing template: %v\n", err)
 		os.Exit(1)

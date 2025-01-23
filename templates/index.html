@@ -28,17 +28,12 @@
                 <th>Action</th>
             </tr>
             {{range .Results}}
-            <form action="/extract" method="POST">
-                <tr>
-                    <td>{{.Title}}</td>
-                    <td>
-                        <input type="hidden" name="start" value="{{.StartOffset}}">
-                        <input type="hidden" name="end" value="{{.EndOffset}}">
-                        <input type="hidden" name="id" value="{{.PageID}}">
-                        <input type="submit" value="Extract">
-                    </td>
-                </tr>
-            </form>
+            <tr>
+                <td>{{.Title}}</td>
+                <td>
+                    <a href="/page/{{.Title | urlize}}">View</a>
+                </td>
+            </tr>
             {{end}}
         </table>
     </div>
