@@ -6,9 +6,12 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"html/template"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 // Page represents a Wikipedia page XML structure
@@ -121,49 +124,67 @@ func ExtractPageText(filename string, pageID int) (string, error) {
 	return "", fmt.Errorf("page with ID %d not found", pageID)
 }
 
+type PageData struct {
+	Error   string
+	Content template.HTML
+}
+
+func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template) {
+	data := PageData{}
+	
+	if r.Method == "POST" {
+		startOffset, _ := strconv.ParseInt(r.FormValue("start"), 10, 64)
+		endOffset, _ := strconv.ParseInt(r.FormValue("end"), 10, 64)
+		pageID, _ := strconv.Atoi(r.FormValue("id"))
+
+		if err := ExtractBzip2Range(inputFile, startOffset, endOffset); err != nil {
+			data.Error = err.Error()
+		} else {
+			text, err := ExtractPageText("output.xml", pageID)
+			if err != nil {
+				data.Error = err.Error()
+			} else {
+				if err := os.WriteFile("page.mediawiki", []byte(text), 0644); err != nil {
+					data.Error = err.Error()
+				} else {
+					output, err := exec.Command("pandoc", "-f", "mediawiki", "page.mediawiki").Output()
+					if err != nil {
+						data.Error = err.Error()
+					} else {
+						data.Content = template.HTML(output)
+					}
+				}
+			}
+		}
+	}
+
+	tmpl.Execute(w, data)
+}
+
 func main() {
-	// Parse command line flags
 	inputFile := flag.String("file", "", "Path to multistream bzip2 file")
-	startOffset := flag.Int64("start", 0, "Starting byte offset of bzip2 stream")
-	endOffset := flag.Int64("end", 0, "Ending byte offset of bzip2 stream (0 means until EOF)")
-	pageID := flag.Int("id", 0, "Page ID to extract text from")
+	port := flag.String("port", "8080", "Port to run the server on")
 	flag.Parse()
 
 	if *inputFile == "" {
 		fmt.Println("Error: -file argument is required")
-		fmt.Println("Usage example: program -file input.bz2 -start 1024 -end 2048")
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	if err := ExtractBzip2Range(*inputFile, *startOffset, *endOffset); err != nil {
-		fmt.Printf("Error: %v\n", err)
+	tmpl, err := template.ParseFiles("templates/index.html")
+	if err != nil {
+		fmt.Printf("Error parsing template: %v\n", err)
 		os.Exit(1)
 	}
 
-	if *pageID > 0 {
-		text, err := ExtractPageText("output.xml", *pageID)
-		if err != nil {
-			fmt.Printf("Error extracting page text: %v\n", err)
-			os.Exit(1)
-		}
-		
-		if err := os.WriteFile("page.mediawiki", []byte(text), 0644); err != nil {
-			fmt.Printf("Error writing page text to file: %v\n", err)
-			os.Exit(1)
-		}
-		
-		// Convert mediawiki to HTML using pandoc
-		output, err := exec.Command("pandoc", "-f", "mediawiki", "page.mediawiki").Output()
-		if err != nil {
-			fmt.Printf("Error converting to HTML: %v\n", err)
-			os.Exit(1)
-		}
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		handleExtract(w, r, *inputFile, tmpl)
+	})
 
-		if err := os.WriteFile("page.html", output, 0644); err != nil {
-			fmt.Printf("Error writing HTML file: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("Page converted to HTML and saved as page.html\n")
+	fmt.Printf("Server starting on http://localhost:%s\n", *port)
+	if err := http.ListenAndServe(":"+*port, nil); err != nil {
+		fmt.Printf("Server error: %v\n", err)
+		os.Exit(1)
 	}
 }

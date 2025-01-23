@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wikipedia Page Extractor</title>
+    <style>
+        body { max-width: 800px; margin: 0 auto; padding: 20px; }
+        form { margin: 20px 0; }
+        input { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Wikipedia Page Extractor</h1>
+    <form action="/extract" method="POST">
+        <div>
+            <label>Start Offset:</label><br>
+            <input type="number" name="start" required>
+        </div>
+        <div>
+            <label>End Offset:</label><br>
+            <input type="number" name="end" required>
+        </div>
+        <div>
+            <label>Page ID:</label><br>
+            <input type="number" name="id" required>
+        </div>
+        <input type="submit" value="Extract">
+    </form>
+    {{if .Error}}
+    <div style="color: red;">
+        Error: {{.Error}}
+    </div>
+    {{end}}
+    {{if .Content}}
+    <div>
+        {{.Content}}
+    </div>
+    {{end}}
+</body>
+</html>
