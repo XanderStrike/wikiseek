@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bufio"
+	"bufio" 
 	"bytes"
 	"compress/bzip2"
+	"io"
 	"encoding/xml"
 	"flag"
 	"fmt"
@@ -130,15 +131,26 @@ type PageData struct {
 }
 
 func loadIndex(filename string) ([]IndexEntry, error) {
-	data, err := os.ReadFile(filename)
+	fmt.Printf("Loading compressed index from %s...\n", filename)
+
+	// Open the bzip2 file
+	f, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error opening index file: %v", err)
+	}
+	defer f.Close()
+
+	// Create bzip2 reader
+	bzReader := bzip2.NewReader(f)
+
+	// Read and decompress the entire index into memory
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, bzReader); err != nil {
+		return nil, fmt.Errorf("error decompressing index: %v", err)
 	}
 
-	fmt.Printf("Loading index from %s...\n", filename)
-
 	var entries []IndexEntry
-	scanner := bufio.NewScanner(bytes.NewReader(data))
+	scanner := bufio.NewScanner(&buf)
 	var allEntries []IndexEntry
 	lineCount := 0
 
