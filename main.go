@@ -146,6 +146,11 @@ func main() {
 			fmt.Printf("Error extracting page text: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Println(text)
+		
+		if err := os.WriteFile("page.mediawiki", []byte(text), 0644); err != nil {
+			fmt.Printf("Error writing page text to file: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Page text written to page.mediawiki\n")
 	}
 }
