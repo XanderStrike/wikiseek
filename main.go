@@ -1,5 +1,13 @@
 package main
 
+import (
+	"compress/bzip2"
+	"flag"
+	"fmt"
+	"io"
+	"os"
+)
+
 type byteCounter struct {
 	count int64
 }
@@ -8,14 +16,6 @@ func (c *byteCounter) Write(p []byte) (n int, err error) {
 	c.count += int64(len(p))
 	return len(p), nil
 }
-
-import (
-	"compress/bzip2"
-	"flag"
-	"fmt"
-	"io"
-	"os"
-)
 
 func main() {
 	// Parse command line flags
@@ -88,9 +88,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *endOffset > 0 && counter.count > (*endOffset - *startOffset) {
-		fmt.Printf("Warning: Read more bytes (%d) than specified range (%d)\n", 
-			bytesRead, *endOffset - *startOffset)
+	if *endOffset > 0 && counter.count > (*endOffset-*startOffset) {
+		fmt.Printf("Warning: Read more bytes (%d) than specified range (%d)\n",
+			bytesRead, *endOffset-*startOffset)
 	}
 
 	fmt.Fprintf(os.Stderr, "Decompressed %d bytes\n", n)
