@@ -16,14 +16,21 @@ func main() {
 
 	if *inputFile == "" {
 		fmt.Println("Error: -file argument is required")
+		fmt.Println("Usage example: program -file input.bz2 -stream 0")
 		flag.Usage()
+		os.Exit(1)
+	}
+
+	// Check if file exists
+	if _, err := os.Stat(*inputFile); os.IsNotExist(err) {
+		fmt.Printf("Error: file '%s' does not exist\n", *inputFile)
 		os.Exit(1)
 	}
 
 	// Open the input file
 	f, err := os.Open(*inputFile)
 	if err != nil {
-		fmt.Printf("Error opening file: %v\n", err)
+		fmt.Printf("Error opening file '%s': %v\n", *inputFile, err)
 		os.Exit(1)
 	}
 	defer f.Close()
