@@ -124,11 +124,12 @@ type IndexEntry struct {
 }
 
 type PageData struct {
-	Error   string
-	Content template.HTML
-	Query   string
-	Results []IndexEntry
-	Title   string
+	Error       string
+	Content     template.HTML
+	Query       string
+	Results     []IndexEntry
+	Title       string
+	RandomPages []IndexEntry
 }
 
 func loadIndex(filename string) ([]IndexEntry, error) {
