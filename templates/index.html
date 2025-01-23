@@ -33,7 +33,7 @@
                     <td>{{.Title}}</td>
                     <td>
                         <input type="hidden" name="start" value="{{.StartOffset}}">
-                        <input type="hidden" name="end" value="{{findNext $.Results .StartOffset}}">
+                        <input type="hidden" name="end" value="{{.EndOffset}}">
                         <input type="hidden" name="id" value="{{.PageID}}">
                         <input type="submit" value="Extract">
                     </td>

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -128,6 +129,7 @@ func ExtractPageText(filename string, pageID int) (string, error) {
 
 type IndexEntry struct {
 	StartOffset int64
+	EndOffset   int64
 	PageID      int
 	Title       string
 }
@@ -147,6 +149,9 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 
 	var entries []IndexEntry
 	scanner := bufio.NewScanner(bytes.NewReader(data))
+	var allEntries []IndexEntry
+	
+	// First pass: collect all entries
 	for scanner.Scan() {
 		parts := strings.Split(scanner.Text(), ":")
 		if len(parts) != 3 {
@@ -156,29 +161,30 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 		startOffset, _ := strconv.ParseInt(parts[0], 10, 64)
 		pageID, _ := strconv.Atoi(parts[1])
 		
-		entries = append(entries, IndexEntry{
+		allEntries = append(allEntries, IndexEntry{
 			StartOffset: startOffset,
 			PageID:     pageID,
 			Title:      parts[2],
 		})
 	}
-	return entries, nil
-}
 
-func findNextOffset(entries []IndexEntry, currentOffset int64) int64 {
-	nextOffset := int64(-1)
-	for _, entry := range entries {
-		if entry.StartOffset > currentOffset {
-			if nextOffset == -1 || entry.StartOffset < nextOffset {
-				nextOffset = entry.StartOffset
-			}
+	// Sort entries by StartOffset
+	sort.Slice(allEntries, func(i, j int) bool {
+		return allEntries[i].StartOffset < allEntries[j].StartOffset
+	})
+
+	// Second pass: calculate EndOffsets
+	for i := 0; i < len(allEntries); i++ {
+		entry := allEntries[i]
+		if i < len(allEntries)-1 {
+			entry.EndOffset = allEntries[i+1].StartOffset
+		} else {
+			entry.EndOffset = entry.StartOffset + 100000 // fallback for last entry
 		}
+		entries = append(entries, entry)
 	}
-	if nextOffset == -1 {
-		// If no next offset found, add 100000 as fallback
-		return currentOffset + 100000
-	}
-	return nextOffset
+
+	return entries, nil
 }
 
 func searchIndex(entries []IndexEntry, query string) []IndexEntry {
@@ -250,13 +256,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	funcMap := template.FuncMap{
-		"findNext": func(entries []IndexEntry, offset int64) int64 {
-			return findNextOffset(entries, offset)
-		},
-	}
-	
-	tmpl, err := template.New("index.html").Funcs(funcMap).ParseFiles("templates/index.html")
+	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {
 		fmt.Printf("Error parsing template: %v\n", err)
 		os.Exit(1)
