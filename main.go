@@ -142,36 +142,37 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	// Create bzip2 reader
 	bzReader := bzip2.NewReader(f)
 
-	var allEntries []IndexEntry
+	// Pre-allocate slice with estimated size (adjust based on your data)
+	allEntries := make([]IndexEntry, 0, 6000000)
 	scanner := bufio.NewScanner(bzReader)
-	lineCount := 0
 
 	// First pass: collect all entries
 	for scanner.Scan() {
-		lineCount++
-		if lineCount%100000 == 0 {
-			fmt.Printf("Processed %d index entries...\n", lineCount)
+		line := scanner.Text()
+		
+		// Fast string splitting
+		offsetStr, rest, ok := strings.Cut(line, ":")
+		if !ok {
+			continue
 		}
-		parts := strings.Split(scanner.Text(), ":")
-		if len(parts) != 3 {
+		pageIDStr, title, ok := strings.Cut(rest, ":")
+		if !ok {
 			continue
 		}
 
-		startOffset, _ := strconv.ParseInt(parts[0], 10, 64)
-		pageID, _ := strconv.Atoi(parts[1])
+		startOffset, _ := strconv.ParseInt(offsetStr, 10, 64)
+		pageID, _ := strconv.Atoi(pageIDStr)
 
 		allEntries = append(allEntries, IndexEntry{
 			StartOffset: startOffset,
 			PageID:      pageID,
-			Title:       parts[2],
+			Title:       title,
 		})
 	}
 
-	fmt.Printf("Sorting %d index entries...\n", len(allEntries))
 	sort.Slice(allEntries, func(i, j int) bool {
 		return allEntries[i].StartOffset < allEntries[j].StartOffset
 	})
-	fmt.Printf("Calculating end offsets...\n")
 
 	// Second pass: calculate EndOffsets
 	for i := 0; i < len(allEntries); i++ {
