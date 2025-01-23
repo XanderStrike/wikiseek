@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 )
 
 // Page represents a Wikipedia page XML structure
@@ -151,6 +152,18 @@ func main() {
 			fmt.Printf("Error writing page text to file: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("Page text written to page.mediawiki\n")
+		
+		// Convert mediawiki to HTML using pandoc
+		output, err := exec.Command("pandoc", "-f", "mediawiki", "page.mediawiki").Output()
+		if err != nil {
+			fmt.Printf("Error converting to HTML: %v\n", err)
+			os.Exit(1)
+		}
+
+		if err := os.WriteFile("page.html", output, 0644); err != nil {
+			fmt.Printf("Error writing HTML file: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Page converted to HTML and saved as page.html\n")
 	}
 }
