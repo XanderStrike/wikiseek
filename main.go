@@ -137,6 +137,7 @@ type PageData struct {
 	Content template.HTML
 	Query   string
 	Results []IndexEntry
+	Title   string
 }
 
 func loadIndex(filename string) ([]IndexEntry, error) {
@@ -231,7 +232,9 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 		return
 	}
 
-	data := PageData{}
+	data := PageData{
+		Title: entry.Title,
+	}
 
 	if err := ExtractBzip2Range(inputFile, entry.StartOffset, entry.EndOffset); err != nil {
 		data.Error = err.Error()
