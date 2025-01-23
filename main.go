@@ -9,12 +9,14 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Page represents a Wikipedia page XML structure
@@ -271,12 +273,41 @@ func handleSearch(w http.ResponseWriter, r *http.Request, searchTmpl *template.T
 	searchTmpl.Execute(w, data)
 }
 
+func getRandomEntries(entries []IndexEntry, count int) []IndexEntry {
+	if len(entries) <= count {
+		return entries
+	}
+	
+	// Create a copy of indices to shuffle
+	indices := make([]int, len(entries))
+	for i := range indices {
+		indices[i] = i
+	}
+	
+	// Fisher-Yates shuffle
+	for i := len(indices) - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		indices[i], indices[j] = indices[j], indices[i]
+	}
+	
+	// Take first count entries
+	result := make([]IndexEntry, count)
+	for i := 0; i < count; i++ {
+		result[i] = entries[indices[i]]
+	}
+	return result
+}
+
 func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
-	data := PageData{}
+	data := PageData{
+		RandomPages: getRandomEntries(index, 10), // Show 10 random pages
+	}
 	tmpl.Execute(w, data)
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	inputFile := flag.String("file", "", "Path to multistream bzip2 file")
 	indexFile := flag.String("index", "", "Path to index file")
 	port := flag.String("port", "8080", "Port to run the server on")
