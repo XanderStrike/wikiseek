@@ -3,11 +3,23 @@ package main
 import (
 	"bytes"
 	"compress/bzip2"
+	"encoding/xml"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 )
+
+// Page represents a Wikipedia page XML structure
+type Page struct {
+	Title    string    `xml:"title"`
+	ID       int       `xml:"id"`
+	Revision Revision  `xml:"revision"`
+}
+
+type Revision struct {
+	Text string `xml:"text"`
+}
 
 
 
@@ -75,11 +87,45 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
 	return nil
 }
 
+// ExtractPageText parses XML data and returns the text content for a given page ID
+func ExtractPageText(filename string, pageID int) (string, error) {
+	// Read the XML file
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return "", fmt.Errorf("error reading file: %v", err)
+	}
+
+	decoder := xml.NewDecoder(bytes.NewReader(data))
+	for {
+		token, err := decoder.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return "", fmt.Errorf("error decoding XML: %v", err)
+		}
+
+		if se, ok := token.(xml.StartElement); ok {
+			if se.Name.Local == "page" {
+				var page Page
+				if err := decoder.DecodeElement(&page, &se); err != nil {
+					return "", fmt.Errorf("error decoding page: %v", err)
+				}
+				if page.ID == pageID {
+					return page.Revision.Text, nil
+				}
+			}
+		}
+	}
+	return "", fmt.Errorf("page with ID %d not found", pageID)
+}
+
 func main() {
 	// Parse command line flags
 	inputFile := flag.String("file", "", "Path to multistream bzip2 file")
 	startOffset := flag.Int64("start", 0, "Starting byte offset of bzip2 stream")
 	endOffset := flag.Int64("end", 0, "Ending byte offset of bzip2 stream (0 means until EOF)")
+	pageID := flag.Int("id", 0, "Page ID to extract text from")
 	flag.Parse()
 
 	if *inputFile == "" {
@@ -92,5 +138,14 @@ func main() {
 	if err := ExtractBzip2Range(*inputFile, *startOffset, *endOffset); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
+	}
+
+	if *pageID > 0 {
+		text, err := ExtractPageText("output.xml", *pageID)
+		if err != nil {
+			fmt.Printf("Error extracting page text: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(text)
 	}
 }
