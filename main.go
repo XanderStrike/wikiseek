@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bufio" 
+	"bufio"
 	"bytes"
 	"compress/bzip2"
-	"io"
 	"encoding/xml"
 	"flag"
 	"fmt"
@@ -269,12 +268,12 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 
 func handleSearch(w http.ResponseWriter, r *http.Request, searchTmpl *template.Template, index []IndexEntry) {
 	data := PageData{}
-	
+
 	if query := r.FormValue("q"); query != "" {
 		data.Query = query
 		data.Results = searchIndex(index, query)
 	}
-	
+
 	searchTmpl.Execute(w, data)
 }
 
