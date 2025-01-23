@@ -43,23 +43,7 @@
         </table>
     </div>
     {{end}}
-
-    <h2>Manual Extraction</h2>
-    <form action="/extract" method="POST">
-        <div>
-            <label>Start Offset:</label><br>
-            <input type="number" name="start" required>
-        </div>
-        <div>
-            <label>End Offset:</label><br>
-            <input type="number" name="end" required>
-        </div>
-        <div>
-            <label>Page ID:</label><br>
-            <input type="number" name="id" required>
-        </div>
-        <input type="submit" value="Extract">
-    </form>
+    
     {{if .Error}}
     <div style="color: red;">
         Error: {{.Error}}
