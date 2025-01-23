@@ -7,9 +7,12 @@
 <body>
     <h1>{{if .Title}}{{.Title}}{{else}}Wikipedia Page Extractor{{end}}</h1>
     
-    <p>
-        <a href="/search">Search Pages</a>
-    </p>
+    <form action="/search" method="GET">
+        <div>
+            <input type="text" name="q" placeholder="Search pages..." style="width: 300px; padding: 5px;">
+            <input type="submit" value="Search">
+        </div>
+    </form>
     
     {{if .Error}}
     <div class="error">

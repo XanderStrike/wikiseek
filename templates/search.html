@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Search Wikipedia Pages</title>
+    <title>Search Results - Wikipedia</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Search Wikipedia Pages</h1>
+    <h1>Search Results</h1>
     
-    <form method="GET">
+    <form action="/search" method="GET">
         <div>
             <input type="text" name="q" value="{{.Query}}" placeholder="Enter search terms..." style="width: 300px; padding: 5px;">
             <input type="submit" value="Search">
