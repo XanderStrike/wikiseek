@@ -37,25 +37,33 @@ func main() {
 
 	// Skip to desired stream
 	var currentStream int
+	fmt.Fprintf(os.Stderr, "Seeking to stream %d...\n", *streamIndex)
+	
 	for currentStream < *streamIndex {
+		fmt.Fprintf(os.Stderr, "Skipping stream %d...\n", currentStream)
+		
 		// Create a new bzip2 reader
 		bzReader := bzip2.NewReader(f)
 		
 		// Read and discard the current stream
-		_, err := io.Copy(io.Discard, bzReader)
+		n, err := io.Copy(io.Discard, bzReader)
 		if err != nil {
 			fmt.Printf("Error skipping stream %d: %v\n", currentStream, err)
 			os.Exit(1)
 		}
+		fmt.Fprintf(os.Stderr, "Skipped %d bytes in stream %d\n", n, currentStream)
 		
 		currentStream++
 	}
 
+	fmt.Fprintf(os.Stderr, "Reading target stream %d...\n", *streamIndex)
+	
 	// Create bzip2 reader for target stream
 	bzReader := bzip2.NewReader(f)
 
 	// Copy decompressed data to stdout
-	_, err = io.Copy(os.Stdout, bzReader)
+	n, err := io.Copy(os.Stdout, bzReader)
+	fmt.Fprintf(os.Stderr, "Decompressed %d bytes from stream %d\n", n, *streamIndex)
 	if err != nil {
 		fmt.Printf("Error decompressing stream %d: %v\n", *streamIndex, err)
 		os.Exit(1)
