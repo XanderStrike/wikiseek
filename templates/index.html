@@ -10,6 +10,41 @@
 </head>
 <body>
     <h1>Wikipedia Page Extractor</h1>
+    
+    <form action="/extract" method="GET">
+        <div>
+            <label>Search titles:</label><br>
+            <input type="text" name="search" value="{{.Query}}">
+            <input type="submit" value="Search">
+        </div>
+    </form>
+
+    {{if .Results}}
+    <div>
+        <h2>Search Results</h2>
+        <table border="1" style="border-collapse: collapse; width: 100%;">
+            <tr>
+                <th>Title</th>
+                <th>Action</th>
+            </tr>
+            {{range .Results}}
+            <form action="/extract" method="POST">
+                <tr>
+                    <td>{{.Title}}</td>
+                    <td>
+                        <input type="hidden" name="start" value="{{.StartOffset}}">
+                        <input type="hidden" name="end" value="{{add .StartOffset 100000}}">
+                        <input type="hidden" name="id" value="{{.PageID}}">
+                        <input type="submit" value="Extract">
+                    </td>
+                </tr>
+            </form>
+            {{end}}
+        </table>
+    </div>
+    {{end}}
+
+    <h2>Manual Extraction</h2>
     <form action="/extract" method="POST">
         <div>
             <label>Start Offset:</label><br>

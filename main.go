@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"compress/bzip2"
 	"encoding/xml"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 // Page represents a Wikipedia page XML structure
@@ -124,13 +126,66 @@ func ExtractPageText(filename string, pageID int) (string, error) {
 	return "", fmt.Errorf("page with ID %d not found", pageID)
 }
 
-type PageData struct {
-	Error   string
-	Content template.HTML
+type IndexEntry struct {
+	StartOffset int64
+	PageID      int
+	Title       string
 }
 
-func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template) {
+type PageData struct {
+	Error    string
+	Content  template.HTML
+	Query    string
+	Results  []IndexEntry
+}
+
+func loadIndex(filename string) ([]IndexEntry, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var entries []IndexEntry
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		parts := strings.Split(scanner.Text(), ":")
+		if len(parts) != 3 {
+			continue
+		}
+		
+		startOffset, _ := strconv.ParseInt(parts[0], 10, 64)
+		pageID, _ := strconv.Atoi(parts[1])
+		
+		entries = append(entries, IndexEntry{
+			StartOffset: startOffset,
+			PageID:     pageID,
+			Title:      parts[2],
+		})
+	}
+	return entries, nil
+}
+
+func searchIndex(entries []IndexEntry, query string) []IndexEntry {
+	query = strings.ToLower(query)
+	var results []IndexEntry
+	for _, entry := range entries {
+		if strings.Contains(strings.ToLower(entry.Title), query) {
+			results = append(results, entry)
+		}
+	}
+	return results
+}
+
+func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	data := PageData{}
+	
+	// Handle search
+	if query := r.FormValue("search"); query != "" {
+		data.Query = query
+		data.Results = searchIndex(index, query)
+		tmpl.Execute(w, data)
+		return
+	}
 	
 	if r.Method == "POST" {
 		startOffset, _ := strconv.ParseInt(r.FormValue("start"), 10, 64)
@@ -163,23 +218,36 @@ func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmp
 
 func main() {
 	inputFile := flag.String("file", "", "Path to multistream bzip2 file")
+	indexFile := flag.String("index", "", "Path to index file")
 	port := flag.String("port", "8080", "Port to run the server on")
 	flag.Parse()
 
-	if *inputFile == "" {
-		fmt.Println("Error: -file argument is required")
+	if *inputFile == "" || *indexFile == "" {
+		fmt.Println("Error: both -file and -index arguments are required")
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	tmpl, err := template.ParseFiles("templates/index.html")
+	index, err := loadIndex(*indexFile)
+	if err != nil {
+		fmt.Printf("Error loading index: %v\n", err)
+		os.Exit(1)
+	}
+
+	funcMap := template.FuncMap{
+		"add": func(a, b int64) int64 {
+			return a + b
+		},
+	}
+	
+	tmpl, err := template.New("index.html").Funcs(funcMap).ParseFiles("templates/index.html")
 	if err != nil {
 		fmt.Printf("Error parsing template: %v\n", err)
 		os.Exit(1)
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handleExtract(w, r, *inputFile, tmpl)
+		handleExtract(w, r, *inputFile, tmpl, index)
 	})
 
 	fmt.Printf("Server starting on http://localhost:%s\n", *port)
