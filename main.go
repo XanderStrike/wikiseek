@@ -185,11 +185,11 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 			}
 		}
 		entry.EndOffset = nextOffset
-		entries = append(entries, entry)
+		allEntries[i] = entry
 	}
 
-	fmt.Printf("Index loaded with %d entries\n", len(entries))
-	return entries, nil
+	fmt.Printf("Index loaded with %d entries\n", len(allEntries))
+	return allEntries, nil
 }
 
 func searchIndex(entries []IndexEntry, query string) []IndexEntry {
