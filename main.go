@@ -165,6 +165,22 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	return entries, nil
 }
 
+func findNextOffset(entries []IndexEntry, currentOffset int64) int64 {
+	nextOffset := int64(-1)
+	for _, entry := range entries {
+		if entry.StartOffset > currentOffset {
+			if nextOffset == -1 || entry.StartOffset < nextOffset {
+				nextOffset = entry.StartOffset
+			}
+		}
+	}
+	if nextOffset == -1 {
+		// If no next offset found, add 100000 as fallback
+		return currentOffset + 100000
+	}
+	return nextOffset
+}
+
 func searchIndex(entries []IndexEntry, query string) []IndexEntry {
 	query = strings.ToLower(query)
 	var results []IndexEntry
@@ -235,8 +251,8 @@ func main() {
 	}
 
 	funcMap := template.FuncMap{
-		"add": func(a, b int64) int64 {
-			return a + b
+		"findNext": func(entries []IndexEntry, offset int64) int64 {
+			return findNextOffset(entries, offset)
 		},
 	}
 	
