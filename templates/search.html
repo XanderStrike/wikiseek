@@ -20,7 +20,7 @@
             <h2>Found {{len .Results}} results for "{{.Query}}"</h2>
             {{range .Results}}
             <div class="result">
-                <h3><a href="/page/{{.Title | urlize}}">{{.Title}}</a></h3>
+                <h3><a href="/wiki/{{.Title | urlize}}">{{.Title}}</a></h3>
             </div>
             {{end}}
         </div>

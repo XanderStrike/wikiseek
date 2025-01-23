@@ -224,7 +224,7 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 
 func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	// Extract the title from the URL path
-	title := strings.TrimPrefix(r.URL.Path, "/page/")
+	title := strings.TrimPrefix(r.URL.Path, "/wiki/")
 
 	entry := findPageByTitle(index, title)
 	if entry == nil {
@@ -317,7 +317,7 @@ func main() {
 		handleSearch(w, r, searchTmpl, index)
 	})
 
-	http.HandleFunc("/page/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/wiki/", func(w http.ResponseWriter, r *http.Request) {
 		handlePage(w, r, *inputFile, tmpl, index)
 	})
 
