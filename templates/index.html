@@ -23,6 +23,15 @@
     <div class="content">
         {{.Content}}
     </div>
+    {{else}}
+    <div class="random-pages">
+        <h2>Random Articles</h2>
+        <ul>
+            {{range .RandomPages}}
+            <li><a href="/wiki/{{.Title | urlize}}">{{.Title}}</a></li>
+            {{end}}
+        </ul>
+    </div>
     {{end}}
 </body>
 </html>
