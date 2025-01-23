@@ -90,7 +90,7 @@ func main() {
 
 	if *endOffset > 0 && counter.count > (*endOffset-*startOffset) {
 		fmt.Printf("Warning: Read more bytes (%d) than specified range (%d)\n",
-			bytesRead, *endOffset-*startOffset)
+			counter.count, *endOffset-*startOffset)
 	}
 
 	fmt.Fprintf(os.Stderr, "Decompressed %d bytes\n", n)
