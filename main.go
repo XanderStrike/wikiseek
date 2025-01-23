@@ -145,12 +145,19 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 		return nil, err
 	}
 
+	fmt.Printf("Loading index from %s...\n", filename)
+	
 	var entries []IndexEntry
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	var allEntries []IndexEntry
+	lineCount := 0
 
 	// First pass: collect all entries
 	for scanner.Scan() {
+		lineCount++
+		if lineCount%100000 == 0 {
+			fmt.Printf("Processed %d index entries...\n", lineCount)
+		}
 		parts := strings.Split(scanner.Text(), ":")
 		if len(parts) != 3 {
 			continue
@@ -166,10 +173,11 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 		})
 	}
 
-	// Sort entries by StartOffset
+	fmt.Printf("Sorting %d index entries...\n", len(allEntries))
 	sort.Slice(allEntries, func(i, j int) bool {
 		return allEntries[i].StartOffset < allEntries[j].StartOffset
 	})
+	fmt.Printf("Calculating end offsets...\n")
 
 	// Second pass: calculate EndOffsets
 	for i := 0; i < len(allEntries); i++ {
@@ -186,6 +194,7 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 		entries = append(entries, entry)
 	}
 
+	fmt.Printf("Index loaded with %d entries\n", len(entries))
 	return entries, nil
 }
 
