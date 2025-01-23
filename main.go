@@ -1,5 +1,14 @@
 package main
 
+type byteCounter struct {
+	count int64
+}
+
+func (c *byteCounter) Write(p []byte) (n int, err error) {
+	c.count += int64(len(p))
+	return len(p), nil
+}
+
 import (
 	"compress/bzip2"
 	"flag"
@@ -62,13 +71,13 @@ func main() {
 	// Create bzip2 reader
 	bzReader := bzip2.NewReader(f)
 
-	// Setup output writer
+	// Setup output writer and byte counter
 	var output io.Writer = os.Stdout
-	var bytesRead int64
+	counter := &byteCounter{count: 0}
 
 	if *endOffset > 0 {
 		// If end offset specified, limit the number of bytes read
-		output = io.MultiWriter(os.Stdout, &bytesRead)
+		output = io.MultiWriter(os.Stdout, counter)
 	}
 
 	// Copy decompressed data to stdout
@@ -79,7 +88,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *endOffset > 0 && bytesRead > (*endOffset - *startOffset) {
+	if *endOffset > 0 && counter.count > (*endOffset - *startOffset) {
 		fmt.Printf("Warning: Read more bytes (%d) than specified range (%d)\n", 
 			bytesRead, *endOffset - *startOffset)
 	}
