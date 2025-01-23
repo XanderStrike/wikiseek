@@ -35,8 +35,11 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
 	}
 	defer f.Close()
 
-	// Create bzip2 reader
-	bzReader := bzip2.NewReader(f)
+	// Seek to the start offset in the compressed file
+	_, err = f.Seek(startOffset, 0)
+	if err != nil {
+		return fmt.Errorf("error seeking to offset %d: %v", startOffset, err)
+	}
 
 	// Create output file
 	outFile, err := os.Create("output.xml")
@@ -45,25 +48,16 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
 	}
 	defer outFile.Close()
 
-	// Skip to start offset by reading and discarding bytes
-	fmt.Fprintf(os.Stderr, "Skipping to offset %d...\n", startOffset)
-	if startOffset > 0 {
-		_, err = io.CopyN(io.Discard, bzReader, startOffset)
-		if err != nil {
-			return fmt.Errorf("error skipping to start offset: %v", err)
-		}
-	}
-
-	// Read exactly (endOffset - startOffset) bytes
+	// Read exactly (endOffset - startOffset) compressed bytes
 	bytesToRead := endOffset - startOffset
-	fmt.Fprintf(os.Stderr, "Reading %d bytes...\n", bytesToRead)
+	fmt.Fprintf(os.Stderr, "Reading %d compressed bytes...\n", bytesToRead)
 	
-	n, err := io.CopyN(outFile, bzReader, bytesToRead)
+	n, err := io.CopyN(outFile, f, bytesToRead)
 	if err != nil && err != io.EOF {
-		return fmt.Errorf("error reading data: %v", err)
+		return fmt.Errorf("error reading compressed data: %v", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "Decompressed %d bytes\n", n)
+	fmt.Fprintf(os.Stderr, "Copied %d compressed bytes\n", n)
 	return nil
 }
 
