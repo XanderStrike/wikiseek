@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"compress/bzip2"
 	"flag"
 	"fmt"
@@ -41,6 +42,22 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
 		return fmt.Errorf("error seeking to offset %d: %v", startOffset, err)
 	}
 
+	// Create a buffer to hold compressed bytes
+	compressedData := make([]byte, endOffset-startOffset)
+	
+	// Read the compressed bytes into buffer
+	bytesToRead := endOffset - startOffset
+	fmt.Fprintf(os.Stderr, "Reading %d compressed bytes...\n", bytesToRead)
+	
+	n, err := io.ReadFull(f, compressedData)
+	if err != nil && err != io.EOF {
+		return fmt.Errorf("error reading compressed data: %v", err)
+	}
+	fmt.Fprintf(os.Stderr, "Read %d compressed bytes\n", n)
+
+	// Create bzip2 reader for the compressed data
+	bzReader := bzip2.NewReader(bytes.NewReader(compressedData))
+
 	// Create output file
 	outFile, err := os.Create("output.xml")
 	if err != nil {
@@ -48,16 +65,13 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
 	}
 	defer outFile.Close()
 
-	// Read exactly (endOffset - startOffset) compressed bytes
-	bytesToRead := endOffset - startOffset
-	fmt.Fprintf(os.Stderr, "Reading %d compressed bytes...\n", bytesToRead)
-	
-	n, err := io.CopyN(outFile, f, bytesToRead)
-	if err != nil && err != io.EOF {
-		return fmt.Errorf("error reading compressed data: %v", err)
+	// Decompress the data to the output file
+	written, err := io.Copy(outFile, bzReader)
+	if err != nil {
+		return fmt.Errorf("error decompressing data: %v", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "Copied %d compressed bytes\n", n)
+	fmt.Fprintf(os.Stderr, "Decompressed %d bytes\n", written)
 	return nil
 }
 
