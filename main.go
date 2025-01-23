@@ -146,7 +146,7 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	}
 
 	fmt.Printf("Loading index from %s...\n", filename)
-	
+
 	var entries []IndexEntry
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	var allEntries []IndexEntry
@@ -212,9 +212,9 @@ func searchIndex(entries []IndexEntry, query string) []IndexEntry {
 func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 	// Convert underscores to spaces in the requested title
 	searchTitle := strings.ReplaceAll(title, "_", " ")
-	
+
 	for _, entry := range entries {
-		if entry.Title == searchTitle {
+		if strings.EqualFold(entry.Title, searchTitle) {
 			return &entry
 		}
 	}
@@ -224,7 +224,7 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	// Extract the title from the URL path
 	title := strings.TrimPrefix(r.URL.Path, "/page/")
-	
+
 	entry := findPageByTitle(index, title)
 	if entry == nil {
 		http.NotFound(w, r)
@@ -232,7 +232,7 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 	}
 
 	data := PageData{}
-	
+
 	if err := ExtractBzip2Range(inputFile, entry.StartOffset, entry.EndOffset); err != nil {
 		data.Error = err.Error()
 	} else {
@@ -323,7 +323,7 @@ func main() {
 	http.HandleFunc("/page/", func(w http.ResponseWriter, r *http.Request) {
 		handlePage(w, r, *inputFile, tmpl, index)
 	})
-	
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
