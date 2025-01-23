@@ -176,11 +176,16 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	// Second pass: calculate EndOffsets
 	for i := 0; i < len(allEntries); i++ {
 		entry := allEntries[i]
-		if i < len(allEntries)-1 {
-			entry.EndOffset = allEntries[i+1].StartOffset
-		} else {
-			entry.EndOffset = entry.StartOffset + 100000 // fallback for last entry
+		// Find next higher start offset
+		nextOffset := entry.StartOffset + 100000 // fallback
+		for _, next := range allEntries {
+			if next.StartOffset > entry.StartOffset {
+				if next.StartOffset < nextOffset {
+					nextOffset = next.StartOffset
+				}
+			}
 		}
+		entry.EndOffset = nextOffset
 		entries = append(entries, entry)
 	}
 
