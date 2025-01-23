@@ -71,16 +71,24 @@ func main() {
 	// Create bzip2 reader
 	bzReader := bzip2.NewReader(f)
 
+	// Create output file
+	outFile, err := os.Create("output.xml")
+	if err != nil {
+		fmt.Printf("Error creating output file: %v\n", err)
+		os.Exit(1)
+	}
+	defer outFile.Close()
+
 	// Setup output writer and byte counter
-	var output io.Writer = os.Stdout
+	var output io.Writer = outFile
 	counter := &byteCounter{count: 0}
 
 	if *endOffset > 0 {
 		// If end offset specified, limit the number of bytes read
-		output = io.MultiWriter(os.Stdout, counter)
+		output = io.MultiWriter(outFile, counter)
 	}
 
-	// Copy decompressed data to stdout
+	// Copy decompressed data to file
 	fmt.Fprintf(os.Stderr, "Reading bzip2 data...\n")
 	n, err := io.Copy(output, bzReader)
 	if err != nil {
