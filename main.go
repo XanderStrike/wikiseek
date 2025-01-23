@@ -8,6 +8,24 @@ import (
 	"os"
 )
 
+type limitedReader struct {
+	r        io.Reader
+	limit    int64
+	position int64
+}
+
+func (l *limitedReader) Read(p []byte) (n int, err error) {
+	if l.position >= l.limit {
+		return 0, io.EOF
+	}
+	if l.limit-l.position < int64(len(p)) {
+		p = p[:l.limit-l.position]
+	}
+	n, err = l.r.Read(p)
+	l.position += int64(n)
+	return
+}
+
 type byteCounter struct {
 	count int64
 }
@@ -71,6 +89,16 @@ func main() {
 	// Create bzip2 reader
 	bzReader := bzip2.NewReader(f)
 
+	// Wrap with limited reader if end offset specified
+	var reader io.Reader = bzReader
+	if *endOffset > 0 {
+		reader = &limitedReader{
+			r:        bzReader,
+			limit:    *endOffset - *startOffset,
+			position: 0,
+		}
+	}
+
 	// Create output file
 	outFile, err := os.Create("output.xml")
 	if err != nil {
@@ -90,7 +118,7 @@ func main() {
 
 	// Copy decompressed data to file
 	fmt.Fprintf(os.Stderr, "Reading bzip2 data...\n")
-	n, err := io.Copy(output, bzReader)
+	n, err := io.Copy(output, reader)
 	if err != nil {
 		fmt.Printf("Error decompressing data: %v\n", err)
 		os.Exit(1)
