@@ -28,8 +28,8 @@ type Revision struct {
 	Text string `xml:"text"`
 }
 
-// ExtractBzip2Range extracts a range of bytes from a bzip2 file and writes them to output.xml
-func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
+// ExtractBzip2Range extracts a range of bytes from a bzip2 file and returns the decompressed data
+func ExtractBzip2Range(filename string, startOffset, endOffset int64) ([]byte, error) {
 	// Validate parameters
 	if startOffset < 0 {
 		return fmt.Errorf("start offset must be non-negative")
@@ -75,30 +75,19 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) error {
 	// Create bzip2 reader for the compressed data
 	bzReader := bzip2.NewReader(bytes.NewReader(compressedData))
 
-	// Create output file
-	outFile, err := os.Create("output.xml")
+	// Decompress the data to a buffer
+	var buf bytes.Buffer
+	written, err := io.Copy(&buf, bzReader)
 	if err != nil {
-		return fmt.Errorf("error creating output file: %v", err)
-	}
-	defer outFile.Close()
-
-	// Decompress the data to the output file
-	written, err := io.Copy(outFile, bzReader)
-	if err != nil {
-		return fmt.Errorf("error decompressing data: %v", err)
+		return nil, fmt.Errorf("error decompressing data: %v", err)
 	}
 
 	fmt.Fprintf(os.Stderr, "Decompressed %d bytes\n", written)
-	return nil
+	return buf.Bytes(), nil
 }
 
 // ExtractPageText parses XML data and returns the text content for a given page ID
-func ExtractPageText(filename string, pageID int) (string, error) {
-	// Read the XML file
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return "", fmt.Errorf("error reading file: %v", err)
-	}
+func ExtractPageText(data []byte, pageID int) (string, error) {
 
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	for {
@@ -236,17 +225,15 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 		Title: entry.Title,
 	}
 
-	if err := ExtractBzip2Range(inputFile, entry.StartOffset, entry.EndOffset); err != nil {
+	xmlData, err := ExtractBzip2Range(inputFile, entry.StartOffset, entry.EndOffset)
+	if err != nil {
 		data.Error = err.Error()
 	} else {
-		text, err := ExtractPageText("output.xml", entry.PageID)
+		text, err := ExtractPageText(xmlData, entry.PageID)
 		if err != nil {
 			data.Error = err.Error()
 		} else {
-			if err := os.WriteFile("page.mediawiki", []byte(text), 0644); err != nil {
-				data.Error = err.Error()
-			} else {
-				output, err := exec.Command("pandoc", "-f", "mediawiki", "page.mediawiki").Output()
+			output, err := exec.Command("pandoc", "-f", "mediawiki", "-t", "html").Input(strings.NewReader(text)).Output()
 				if err != nil {
 					data.Error = err.Error()
 				} else {
