@@ -32,31 +32,31 @@ type Revision struct {
 func ExtractBzip2Range(filename string, startOffset, endOffset int64) ([]byte, error) {
 	// Validate parameters
 	if startOffset < 0 {
-		return fmt.Errorf("start offset must be non-negative")
+		return nil, fmt.Errorf("start offset must be non-negative")
 	}
 	if endOffset < 0 {
-		return fmt.Errorf("end offset must be non-negative")
+		return nil, fmt.Errorf("end offset must be non-negative")
 	}
 	if endOffset > 0 && endOffset <= startOffset {
-		return fmt.Errorf("end offset must be greater than start offset")
+		return nil, fmt.Errorf("end offset must be greater than start offset")
 	}
 
 	// Check if file exists
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return fmt.Errorf("file '%s' does not exist", filename)
+		return nil, fmt.Errorf("file '%s' does not exist", filename)
 	}
 
 	// Open the input file
 	f, err := os.Open(filename)
 	if err != nil {
-		return fmt.Errorf("error opening file '%s': %v", filename, err)
+		return nil, fmt.Errorf("error opening file '%s': %v", filename, err)
 	}
 	defer f.Close()
 
 	// Seek to the start offset in the compressed file
 	_, err = f.Seek(startOffset, 0)
 	if err != nil {
-		return fmt.Errorf("error seeking to offset %d: %v", startOffset, err)
+		return nil, fmt.Errorf("error seeking to offset %d: %v", startOffset, err)
 	}
 
 	// Create a buffer to hold compressed bytes
@@ -68,7 +68,7 @@ func ExtractBzip2Range(filename string, startOffset, endOffset int64) ([]byte, e
 
 	n, err := io.ReadFull(f, compressedData)
 	if err != nil && err != io.EOF {
-		return fmt.Errorf("error reading compressed data: %v", err)
+		return nil, fmt.Errorf("error reading compressed data: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "Read %d compressed bytes\n", n)
 
@@ -233,7 +233,17 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 		if err != nil {
 			data.Error = err.Error()
 		} else {
-			output, err := exec.Command("pandoc", "-f", "mediawiki", "-t", "html").Input(strings.NewReader(text)).Output()
+			cmd := exec.Command("pandoc", "-f", "mediawiki", "-t", "html")
+			stdin, err := cmd.StdinPipe()
+			if err != nil {
+				data.Error = err.Error()
+				return
+			}
+			go func() {
+				defer stdin.Close()
+				io.WriteString(stdin, text)
+			}()
+			output, err := cmd.Output()
 			if err != nil {
 				data.Error = err.Error()
 			} else {
