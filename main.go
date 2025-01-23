@@ -209,6 +209,53 @@ func searchIndex(entries []IndexEntry, query string) []IndexEntry {
 	return results
 }
 
+func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
+	// Convert underscores to spaces in the requested title
+	searchTitle := strings.ReplaceAll(title, "_", " ")
+	
+	for _, entry := range entries {
+		if entry.Title == searchTitle {
+			return &entry
+		}
+	}
+	return nil
+}
+
+func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
+	// Extract the title from the URL path
+	title := strings.TrimPrefix(r.URL.Path, "/page/")
+	
+	entry := findPageByTitle(index, title)
+	if entry == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	data := PageData{}
+	
+	if err := ExtractBzip2Range(inputFile, entry.StartOffset, entry.EndOffset); err != nil {
+		data.Error = err.Error()
+	} else {
+		text, err := ExtractPageText("output.xml", entry.PageID)
+		if err != nil {
+			data.Error = err.Error()
+		} else {
+			if err := os.WriteFile("page.mediawiki", []byte(text), 0644); err != nil {
+				data.Error = err.Error()
+			} else {
+				output, err := exec.Command("pandoc", "-f", "mediawiki", "page.mediawiki").Output()
+				if err != nil {
+					data.Error = err.Error()
+				} else {
+					data.Content = template.HTML(output)
+				}
+			}
+		}
+	}
+
+	tmpl.Execute(w, data)
+}
+
 func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	data := PageData{}
 
@@ -273,7 +320,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	http.HandleFunc("/page/", func(w http.ResponseWriter, r *http.Request) {
+		handlePage(w, r, *inputFile, tmpl, index)
+	})
+	
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
 		handleExtract(w, r, *inputFile, tmpl, index)
 	})
 
