@@ -11,23 +11,44 @@ WikiSeek is a Go-based web application that serves as a local Wikipedia browser 
 - Efficient handling of large compressed Wikipedia dumps
 - Markdown-to-HTML conversion of Wikipedia markup
 
-## Requirements
-
-- Go 1.x
-- pandoc (for converting Wikipedia markup to HTML)
-- A Wikipedia XML dump file in bzip2 format
-- The corresponding index file
-
-## Installation
-
-1. Install Go from https://golang.org/
-2. Install pandoc: `brew install pandoc` (macOS) or `apt-get install pandoc` (Linux)
-3. Clone this repository
-4. Download a Wikipedia dump file and its index
-
 ## Usage
 
-Run the server with:
+### Running with Docker (Recommended)
+
+1. Create a `dumps` directory in your project root:
+```bash
+mkdir dumps
+```
+
+2. Place your Wikipedia dump files in the `dumps` directory:
+   - The main Wikipedia XML dump (e.g., `enwiki-20241201-pages-articles-multistream.xml.bz2`)
+   - The index file (e.g., `enwiki-20241201-pages-articles-multistream-index.txt.bz2`)
+
+3. Run using docker cli
+```bash
+docker run -p 8080:8080 -v ./dumps:/dumps xanderstrike/wikiseek -file /dumps/enwiki-20241201-pages-articles-multistream.xml.bz2 -index /dumps/enwiki-20241201-pages-articles-multistream-index.txt.bz2
+```
+
+Or compose:
+
+```yaml
+version: '3'
+
+services:
+  wikiseek:
+    image: xanderstrike/wikiseek
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dumps:/dumps
+    command: -file /dumps/enwiki-20241201-pages-articles-multistream.xml.bz2 -index /dumps/enwiki-20241201-pages-articles-multistream-index.txt.bz2
+```
+
+### Running Locally
+
+Install Pandoc with apt or brew or what have you.
+
+Run the server directly with Go:
 
 ```bash
 go run main.go -file path/to/wiki.xml.bz2 -index path/to/index.bz2 -port 8080
