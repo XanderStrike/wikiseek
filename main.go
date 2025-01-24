@@ -104,6 +104,7 @@ type PageData struct {
 }
 
 func loadIndex(filename string) ([]IndexEntry, error) {
+	fmt.Print("Loading index")
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("opening index file: %v", err)
@@ -113,7 +114,12 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	bzReader := bzip2.NewReader(f)
 	allEntries := make([]IndexEntry, 0, 6000000)
 	scanner := bufio.NewScanner(bzReader)
+	count := 0
 	for scanner.Scan() {
+		count++
+		if count%1000000 == 0 {
+			fmt.Print(".")
+		}
 		line := scanner.Text()
 
 		// Fast string splitting
@@ -169,7 +175,7 @@ func searchIndex(entries []IndexEntry, query string) []IndexEntry {
 			strings.HasPrefix(entry.Title, "Template:") {
 			continue
 		}
-		
+
 		if strings.Contains(strings.ToLower(entry.Title), query) {
 			results = append(results, entry)
 		}
