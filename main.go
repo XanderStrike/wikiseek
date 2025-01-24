@@ -200,7 +200,7 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 		entry.Offsets = offsets.getOrCreate(entry.Offsets.Start, nextOffset)
 	}
 
-	fmt.Printf("Index loaded with %d entries\n", len(allEntries))
+	fmt.Printf("Index loaded with %d entries in %d streams\n", len(allEntries), len(offsets.pairs))
 	return allEntries, nil
 }
 
