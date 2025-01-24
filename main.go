@@ -356,6 +356,12 @@ func main() {
 	// Serve static files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+	// Serve robots.txt to prevent scraping
+	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("User-agent: *\nDisallow: /\n"))
+	})
+
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
 		handleSearch(w, r, searchTmpl, index)
 	})
