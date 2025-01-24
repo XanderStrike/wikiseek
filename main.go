@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/bzip2"
+	"encoding/gob"
 	"encoding/xml"
 	"flag"
 	"fmt"
@@ -131,8 +132,45 @@ type PageData struct {
 	RandomPages []IndexEntry
 }
 
+func saveIndexCache(entries []IndexEntry, cacheFile string) error {
+	f, err := os.Create(cacheFile)
+	if err != nil {
+		return fmt.Errorf("creating cache file: %v", err)
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	if err := enc.Encode(entries); err != nil {
+		return fmt.Errorf("encoding cache: %v", err)
+	}
+	return nil
+}
+
+func loadIndexCache(cacheFile string) ([]IndexEntry, error) {
+	f, err := os.Open(cacheFile)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	var entries []IndexEntry
+	dec := gob.NewDecoder(f)
+	if err := dec.Decode(&entries); err != nil {
+		return nil, err
+	}
+	return entries, nil
+}
+
 func loadIndex(filename string) ([]IndexEntry, error) {
-	fmt.Print("Loading index")
+	// Try loading from cache first
+	cacheFile := filename + ".cache"
+	entries, err := loadIndexCache(cacheFile)
+	if err == nil {
+		fmt.Printf("Loaded %d entries from cache\n", len(entries))
+		return entries, nil
+	}
+
+	fmt.Print("Loading index from source file")
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("opening index file: %v", err)
@@ -201,6 +239,12 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	}
 
 	fmt.Printf("Index loaded with %d entries in %d streams\n", len(allEntries), len(offsets.pairs))
+	
+	// Save to cache for next time
+	if err := saveIndexCache(allEntries, filename+".cache"); err != nil {
+		fmt.Printf("Warning: failed to save index cache: %v\n", err)
+	}
+	
 	return allEntries, nil
 }
 
