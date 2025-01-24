@@ -86,11 +86,40 @@ func ExtractPageText(data []byte, pageID int) (string, error) {
 	return "", fmt.Errorf("page with ID %d not found", pageID)
 }
 
+// OffsetPair stores unique start/end offset combinations
+type OffsetPair struct {
+	Start int64
+	End   int64
+}
+
 type IndexEntry struct {
-	StartOffset int64
-	EndOffset   int64
-	PageID      int
-	Title       string
+	Offsets *OffsetPair // Reference to shared offset pair
+	PageID  int
+	Title   string
+}
+
+// offsetCache helps deduplicate common offset pairs
+type offsetCache struct {
+	pairs map[uint64]*OffsetPair
+}
+
+func newOffsetCache() *offsetCache {
+	return &offsetCache{
+		pairs: make(map[uint64]*OffsetPair),
+	}
+}
+
+func (oc *offsetCache) getOrCreate(start, end int64) *OffsetPair {
+	// Create a unique key from the two int64s
+	key := uint64(start)<<32 | uint64(uint32(end))
+	
+	if pair, ok := oc.pairs[key]; ok {
+		return pair
+	}
+	
+	pair := &OffsetPair{Start: start, End: end}
+	oc.pairs[key] = pair
+	return pair
 }
 
 type PageData struct {
@@ -112,6 +141,7 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 
 	bzReader := bzip2.NewReader(f)
 	allEntries := make([]IndexEntry, 0, 6000000)
+	offsets := newOffsetCache()
 	scanner := bufio.NewScanner(bzReader)
 	count := 0
 	for scanner.Scan() {
@@ -145,9 +175,9 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 		pageID, _ := strconv.Atoi(pageIDStr)
 
 		allEntries = append(allEntries, IndexEntry{
-			StartOffset: startOffset,
-			PageID:      pageID,
-			Title:       title,
+			Offsets: offsets.getOrCreate(startOffset, 0), // EndOffset will be set later
+			PageID:  pageID,
+			Title:   title,
 		})
 	}
 
@@ -157,17 +187,17 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 
 	// Second pass: calculate EndOffsets
 	for i := 0; i < len(allEntries); i++ {
-		entry := allEntries[i]
+		entry := &allEntries[i]
 		// Find next higher start offset
 		var nextOffset int64
 		for j := i + 1; j < len(allEntries); j++ {
-			if allEntries[j].StartOffset > entry.StartOffset {
-				nextOffset = allEntries[j].StartOffset
+			if allEntries[j].Offsets.Start > entry.Offsets.Start {
+				nextOffset = allEntries[j].Offsets.Start
 				break
 			}
 		}
-		entry.EndOffset = nextOffset
-		allEntries[i] = entry
+		// Update the offset pair
+		entry.Offsets = offsets.getOrCreate(entry.Offsets.Start, nextOffset)
 	}
 
 	fmt.Printf("Index loaded with %d entries\n", len(allEntries))
@@ -219,7 +249,7 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 		Title: entry.Title,
 	}
 
-	xmlData, err := ExtractBzip2Range(inputFile, entry.StartOffset, entry.EndOffset)
+	xmlData, err := ExtractBzip2Range(inputFile, entry.Offsets.Start, entry.Offsets.End)
 	if err != nil {
 		data.Error = err.Error()
 	} else {
