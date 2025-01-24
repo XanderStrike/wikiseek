@@ -163,6 +163,13 @@ func searchIndex(entries []IndexEntry, query string) []IndexEntry {
 	query = strings.ToLower(query)
 	var results []IndexEntry
 	for _, entry := range entries {
+		// Skip special namespace entries
+		if strings.HasPrefix(entry.Title, "File:") ||
+			strings.HasPrefix(entry.Title, "Category:") ||
+			strings.HasPrefix(entry.Title, "Template:") {
+			continue
+		}
+		
 		if strings.Contains(strings.ToLower(entry.Title), query) {
 			results = append(results, entry)
 		}
