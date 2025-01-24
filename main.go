@@ -263,23 +263,19 @@ func getRandomEntries(entries []IndexEntry, count int) []IndexEntry {
 		return entries
 	}
 
-	// Create a copy of indices to shuffle
-	indices := make([]int, len(entries))
-	for i := range indices {
-		indices[i] = i
-	}
-
-	// Fisher-Yates shuffle
-	for i := len(indices) - 1; i > 0; i-- {
-		j := rand.Intn(i + 1)
-		indices[i], indices[j] = indices[j], indices[i]
-	}
-
-	// Take first count entries
+	// Pick random indices directly
 	result := make([]IndexEntry, count)
-	for i := 0; i < count; i++ {
-		result[i] = entries[indices[i]]
+	seen := make(map[int]bool, count)
+
+	for i := 0; i < count; {
+		idx := rand.Intn(len(entries))
+		if !seen[idx] {
+			result[i] = entries[idx]
+			seen[idx] = true
+			i++
+		}
 	}
+
 	return result
 }
 
