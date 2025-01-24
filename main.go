@@ -152,7 +152,7 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	// First pass: collect all entries
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		// Fast string splitting
 		offsetStr, rest, ok := strings.Cut(line, ":")
 		if !ok {
@@ -211,6 +211,14 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 	// Convert underscores to spaces in the requested title
 	searchTitle := strings.ReplaceAll(title, "_", " ")
 
+	// Try case sensitive match first
+	for _, entry := range entries {
+		if entry.Title == searchTitle {
+			return &entry
+		}
+	}
+
+	// Fall back to case insensitive match
 	for _, entry := range entries {
 		if strings.EqualFold(entry.Title, searchTitle) {
 			return &entry
@@ -278,19 +286,19 @@ func getRandomEntries(entries []IndexEntry, count int) []IndexEntry {
 	if len(entries) <= count {
 		return entries
 	}
-	
+
 	// Create a copy of indices to shuffle
 	indices := make([]int, len(entries))
 	for i := range indices {
 		indices[i] = i
 	}
-	
+
 	// Fisher-Yates shuffle
 	for i := len(indices) - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
 		indices[i], indices[j] = indices[j], indices[i]
 	}
-	
+
 	// Take first count entries
 	result := make([]IndexEntry, count)
 	for i := 0; i < count; i++ {
