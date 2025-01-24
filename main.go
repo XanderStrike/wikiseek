@@ -16,7 +16,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // Page represents a Wikipedia page XML structure
@@ -132,6 +131,16 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 			continue
 		}
 
+		// Skip special namespace entries
+		if strings.HasPrefix(title, "File:") ||
+			strings.HasPrefix(title, "Category:") ||
+			strings.HasPrefix(title, "Wikipedia:") ||
+			strings.HasPrefix(title, "Draft:") ||
+			strings.HasPrefix(title, "Portal:") ||
+			strings.HasPrefix(title, "Template:") {
+			continue
+		}
+
 		startOffset, _ := strconv.ParseInt(offsetStr, 10, 64)
 		pageID, _ := strconv.Atoi(pageIDStr)
 
@@ -169,13 +178,6 @@ func searchIndex(entries []IndexEntry, query string) []IndexEntry {
 	query = strings.ToLower(query)
 	var results []IndexEntry
 	for _, entry := range entries {
-		// Skip special namespace entries
-		if strings.HasPrefix(entry.Title, "File:") ||
-			strings.HasPrefix(entry.Title, "Category:") ||
-			strings.HasPrefix(entry.Title, "Template:") {
-			continue
-		}
-
 		if strings.Contains(strings.ToLower(entry.Title), query) {
 			results = append(results, entry)
 		}
@@ -281,14 +283,12 @@ func getRandomEntries(entries []IndexEntry, count int) []IndexEntry {
 
 func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	data := PageData{
-		RandomPages: getRandomEntries(index, 10), // Show 10 random pages
+		RandomPages: getRandomEntries(index, 25),
 	}
 	tmpl.Execute(w, data)
 }
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
-
 	inputFile := flag.String("file", "", "Path to multistream bzip2 file")
 	indexFile := flag.String("index", "", "Path to index file")
 	port := flag.String("port", "8080", "Port to run the server on")
