@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/bzip2"
+	"compress/gzip"
 	"encoding/gob"
 	"encoding/xml"
 	"flag"
@@ -139,7 +140,10 @@ func saveIndexCache(entries []IndexEntry, cacheFile string) error {
 	}
 	defer f.Close()
 
-	enc := gob.NewEncoder(f)
+	gw := gzip.NewWriter(f)
+	defer gw.Close()
+
+	enc := gob.NewEncoder(gw)
 	if err := enc.Encode(entries); err != nil {
 		return fmt.Errorf("encoding cache: %v", err)
 	}
@@ -153,8 +157,14 @@ func loadIndexCache(cacheFile string) ([]IndexEntry, error) {
 	}
 	defer f.Close()
 
+	gr, err := gzip.NewReader(f)
+	if err != nil {
+		return nil, err
+	}
+	defer gr.Close()
+
 	var entries []IndexEntry
-	dec := gob.NewDecoder(f)
+	dec := gob.NewDecoder(gr)
 	if err := dec.Decode(&entries); err != nil {
 		return nil, err
 	}
