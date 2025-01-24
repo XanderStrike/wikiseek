@@ -30,61 +30,32 @@ type Revision struct {
 	Text string `xml:"text"`
 }
 
-// ExtractBzip2Range extracts a range of bytes from a bzip2 file and returns the decompressed data
 func ExtractBzip2Range(filename string, startOffset, endOffset int64) ([]byte, error) {
-	// Validate parameters
-	if startOffset < 0 {
-		return nil, fmt.Errorf("start offset must be non-negative")
-	}
-	if endOffset < 0 {
-		return nil, fmt.Errorf("end offset must be non-negative")
-	}
-	if endOffset > 0 && endOffset <= startOffset {
-		return nil, fmt.Errorf("end offset must be greater than start offset")
+	if startOffset < 0 || endOffset < 0 || (endOffset > 0 && endOffset <= startOffset) {
+		return nil, fmt.Errorf("invalid offset values")
 	}
 
-	// Check if file exists
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return nil, fmt.Errorf("file '%s' does not exist", filename)
-	}
-
-	// Open the input file
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("error opening file '%s': %v", filename, err)
+		return nil, fmt.Errorf("opening file: %v", err)
 	}
 	defer f.Close()
 
-	// Seek to the start offset in the compressed file
-	_, err = f.Seek(startOffset, 0)
-	if err != nil {
-		return nil, fmt.Errorf("error seeking to offset %d: %v", startOffset, err)
+	if _, err := f.Seek(startOffset, 0); err != nil {
+		return nil, fmt.Errorf("seeking to offset: %v", err)
 	}
 
-	// Create a buffer to hold compressed bytes
 	compressedData := make([]byte, endOffset-startOffset)
-
-	// Read the compressed bytes into buffer
-	bytesToRead := endOffset - startOffset
-	fmt.Fprintf(os.Stderr, "Reading %d compressed bytes...\n", bytesToRead)
-
-	n, err := io.ReadFull(f, compressedData)
-	if err != nil && err != io.EOF {
-		return nil, fmt.Errorf("error reading compressed data: %v", err)
+	if _, err := io.ReadFull(f, compressedData); err != nil && err != io.EOF {
+		return nil, fmt.Errorf("reading compressed data: %v", err)
 	}
-	fmt.Fprintf(os.Stderr, "Read %d compressed bytes\n", n)
 
-	// Create bzip2 reader for the compressed data
 	bzReader := bzip2.NewReader(bytes.NewReader(compressedData))
-
-	// Decompress the data to a buffer
 	var buf bytes.Buffer
-	written, err := io.Copy(&buf, bzReader)
-	if err != nil {
-		return nil, fmt.Errorf("error decompressing data: %v", err)
+	if _, err := io.Copy(&buf, bzReader); err != nil {
+		return nil, fmt.Errorf("decompressing data: %v", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "Decompressed %d bytes\n", written)
 	return buf.Bytes(), nil
 }
 
@@ -133,23 +104,15 @@ type PageData struct {
 }
 
 func loadIndex(filename string) ([]IndexEntry, error) {
-	fmt.Printf("Loading compressed index from %s...\n", filename)
-
-	// Open the bzip2 file
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("error opening index file: %v", err)
+		return nil, fmt.Errorf("opening index file: %v", err)
 	}
 	defer f.Close()
 
-	// Create bzip2 reader
 	bzReader := bzip2.NewReader(f)
-
-	// Pre-allocate slice with estimated size (adjust based on your data)
 	allEntries := make([]IndexEntry, 0, 6000000)
 	scanner := bufio.NewScanner(bzReader)
-
-	// First pass: collect all entries
 	for scanner.Scan() {
 		line := scanner.Text()
 
