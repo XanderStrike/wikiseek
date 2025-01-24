@@ -182,7 +182,7 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	}
 
 	sort.Slice(allEntries, func(i, j int) bool {
-		return allEntries[i].StartOffset < allEntries[j].StartOffset
+		return allEntries[i].Offsets.Start < allEntries[j].Offsets.Start
 	})
 
 	// Second pass: calculate EndOffsets
