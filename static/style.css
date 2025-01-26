@@ -267,9 +267,10 @@ input[type="submit"]:hover {
     font-size: 1.2rem;
 }
 
-/* Style for image alt text and figures */
+/* Style for image alt text, figures and videos */
 img[alt],
-figure {
+figure,
+video {
     display: block;
     padding: 8px;
     margin: 8px 0;
@@ -279,6 +280,15 @@ figure {
     font-style: italic;
     color: #666;
     max-width: 100%;
+}
+
+/* Show video title/alt text */
+video::before {
+    content: "🎥 " attr(title);
+    display: block;
+    margin-bottom: 8px;
+    font-style: normal;
+    color: #444;
 }
 
 /* Hide images inside figures */
