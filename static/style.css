@@ -7,12 +7,30 @@ body {
     line-height: 1.6;
     color: #2c3e50;
     background-color: white;
+    text-align: justify;
+}
+
+@media (max-width: 600px) {
+    body {
+        font-size: 18px;
+        line-height: 1.7;
+        padding: 16px;
+        padding-top: 56px;
+        text-align: left;
+        hyphens: auto;
+    }
+    
+    .content {
+        text-align: justify;
+        hyphens: auto;
+    }
 }
 
 @media (min-width: 600px) {
     body {
         padding: 20px;
         padding-top: 60px;
+        text-align: left;
     }
 }
 
@@ -122,10 +140,14 @@ a:hover {
     margin-top: 1.5rem;
     font-size: 1rem;
     line-height: 1.6;
+    text-align: justify;
+    hyphens: auto;
 }
 
 .content p {
     margin: 1.25rem 0;
+    text-align: justify;
+    hyphens: auto;
 }
 
 .content img {
