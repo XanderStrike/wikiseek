@@ -135,3 +135,21 @@ input[type="submit"]:hover {
     margin: 0;
     font-size: 1.2rem;
 }
+
+/* Style for image alt text */
+img[alt] {
+    display: inline-block;
+    padding: 8px;
+    margin: 4px 0;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-style: italic;
+    color: #666;
+    max-width: 100%;
+}
+
+/* Style for broken image icons */
+img[alt]:before {
+    content: "🖼️ ";
+}
