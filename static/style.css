@@ -76,6 +76,13 @@ a:hover { color: #2980b9; }
     margin: 1rem 0;
 }
 
+.description {
+    margin: 2rem 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #444;
+}
+
 /* Search specific styles */
 input[type="text"] {
     width: 300px;
