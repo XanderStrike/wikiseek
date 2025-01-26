@@ -289,6 +289,25 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 	return nil
 }
 
+func isRedirect(content string) (string, bool) {
+	// Look for redirect patterns in the HTML
+	redirectPrefix := "<li>REDIRECT <a href=\""
+	start := strings.Index(content, redirectPrefix)
+	if start == -1 {
+		return "", false
+	}
+	
+	// Extract the target title from the href
+	start += len(redirectPrefix)
+	end := strings.Index(content[start:], "\"")
+	if end == -1 {
+		return "", false
+	}
+	
+	target := content[start:start+end]
+	return target, true
+}
+
 func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	// Extract the title from the URL path
 	title := strings.TrimPrefix(r.URL.Path, "/wiki/")
@@ -325,6 +344,11 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 			if err != nil {
 				data.Error = err.Error()
 			} else {
+				// Check if this is a redirect page
+				if target, isRedirect := isRedirect(string(output)); isRedirect {
+					http.Redirect(w, r, "/wiki/"+target, http.StatusFound)
+					return
+				}
 				data.Content = template.HTML(output)
 			}
 		}
