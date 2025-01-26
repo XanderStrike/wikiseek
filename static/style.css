@@ -222,6 +222,11 @@ tbody tr:nth-child(odd) {
     }
 }
 
+/* Hide bullets for empty list items */
+li:empty {
+    list-style: none;
+}
+
 /* Blockquote styling */
 blockquote {
     margin: 1.5rem 0;
