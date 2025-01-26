@@ -292,8 +292,8 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 }
 
 func stripImgDimensions(html string) string {
-	// Remove width and height attributes from img tags
-	re := regexp.MustCompile(`(<img[^>]+)(width|height)="[^"]*"`)
+	// Remove width, height and src attributes from img tags
+	re := regexp.MustCompile(`(<img[^>]+)(width|height|src)="[^"]*"`)
 	return re.ReplaceAllString(html, "$1")
 }
 
