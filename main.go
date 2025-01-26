@@ -340,9 +340,9 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 				defer stdin.Close()
 				io.WriteString(stdin, text)
 			}()
-			output, err := cmd.Output()
+			output, err := cmd.CombinedOutput()
 			if err != nil {
-				data.Error = fmt.Sprintf("Error converting with pandoc: %v", err)
+				data.Error = fmt.Sprintf("Error converting with pandoc: %v\nOutput:\n%s", err, string(output))
 			} else {
 				// Check if this is a redirect page
 				if target, isRedirect := isRedirect(string(output)); isRedirect {
