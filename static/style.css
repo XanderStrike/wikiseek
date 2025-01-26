@@ -53,6 +53,21 @@ body {
     align-items: center;
     gap: 12px;
     padding: 0 8px;
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .nav-container {
+        padding: 0 16px;
+        gap: 8px;
+    }
+    .nav {
+        padding: 8px 0;
+    }
+    input[type="text"] {
+        min-width: 0;
+        width: 100%;
+    }
 }
 
 @media (min-width: 600px) {
@@ -188,6 +203,8 @@ input[type="text"] {
     transition: border-color 0.2s;
     min-height: 40px;
     -webkit-appearance: none;
+    box-sizing: border-box;
+    flex: 1;
 }
 
 @media (min-width: 600px) {
