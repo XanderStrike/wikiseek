@@ -169,8 +169,9 @@ figcaption {
     color: #444;
 }
 
-/* Hide footnote references */
-.footnote-ref {
+/* Hide footnote references and footnotes */
+.footnote-ref,
+.footnotes {
     display: none;
 }
 
