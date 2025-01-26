@@ -316,18 +316,25 @@ func lowercaseAnchors(html string) string {
 		
 		// Process the href value
 		hrefValue := html[hrefIndex+6:endQuote]
-		// Skip category links
-		if !strings.HasPrefix(hrefValue, "Category:") {
-			if hashIndex := strings.IndexByte(hrefValue, '#'); hashIndex != -1 {
-				// Lowercase everything after the #
-				hrefValue = hrefValue[:hashIndex+1] + strings.ToLower(hrefValue[hashIndex+1:])
+		// Skip category links entirely
+		if strings.HasPrefix(hrefValue, "Category:") {
+			// Find the closing </a> tag
+			aEnd := strings.Index(html[endQuote:], "</a>")
+			if aEnd == -1 {
+				start = endQuote + 1
+				continue
 			}
-			result.WriteString(hrefValue)
-		} else {
-			// For category links, just write the text content
-			start = endQuote + 1
+			// Skip past the entire link
+			start = endQuote + aEnd + 4
 			continue
 		}
+				
+		// Process non-category links
+		if hashIndex := strings.IndexByte(hrefValue, '#'); hashIndex != -1 {
+			// Lowercase everything after the #
+			hrefValue = hrefValue[:hashIndex+1] + strings.ToLower(hrefValue[hashIndex+1:])
+		}
+		result.WriteString(hrefValue)
 		
 		start = endQuote
 	}
