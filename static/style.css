@@ -173,3 +173,50 @@ figcaption {
 .footnote-ref {
     display: none;
 }
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+thead {
+    border-bottom: 2px solid #ddd;
+}
+
+th {
+    text-align: left;
+    padding: 0.75rem;
+    font-weight: 600;
+    color: #444;
+}
+
+td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Zebra striping for better readability */
+tbody tr:nth-child(odd) {
+    background-color: #fafafa;
+}
+
+/* Compact tables on small screens */
+@media (max-width: 600px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    th, td {
+        padding: 0.5rem;
+    }
+}
