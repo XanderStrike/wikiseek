@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Search Results - Wikipedia</title>
+    <title>Search Results - WikiSeek</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="nav">
         <div class="nav-container">
-            <a href="/">Wikipedia</a>
+            <a href="/" class="logo">WikiSeek</a>
             <form action="/search" method="GET" style="flex-grow: 1;">
                 <input type="text" name="q" value="{{.Query}}" placeholder="Search pages..." style="width: 100%; padding: 5px;">
             </form>
