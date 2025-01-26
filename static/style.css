@@ -396,3 +396,28 @@ blockquote:after {
 blockquote p {
     margin: 0;
 }
+
+/* Style definition lists like blockquotes */
+dl {
+    margin: 1.5rem 0;
+    padding: 0 1.5rem;
+    border-left: 4px solid #3498db;
+    background-color: #f8f9fa;
+    color: #444;
+    position: relative;
+}
+
+dd {
+    margin: 0.75rem 0;
+    padding: 0.5rem 1rem;
+    background-color: #f0f0f0;
+    border-left: 2px solid #ddd;
+    font-style: italic;
+    color: #555;
+}
+
+dt {
+    font-weight: 600;
+    margin-top: 1rem;
+    color: #2c3e50;
+}
