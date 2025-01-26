@@ -168,3 +168,8 @@ figcaption {
     font-style: normal;
     color: #444;
 }
+
+/* Hide footnote references */
+.footnote-ref {
+    display: none;
+}
