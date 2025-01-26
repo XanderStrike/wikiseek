@@ -289,6 +289,44 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 	return nil
 }
 
+func lowercaseAnchors(html string) string {
+	var result strings.Builder
+	start := 0
+	
+	for {
+		// Find next href attribute
+		hrefIndex := strings.Index(html[start:], "href=\"")
+		if hrefIndex == -1 {
+			result.WriteString(html[start:])
+			break
+		}
+		hrefIndex += start
+		
+		// Write everything up to the href
+		result.WriteString(html[start:hrefIndex+6])
+		
+		// Find the end of the href value
+		endQuote := strings.IndexByte(html[hrefIndex+6:], '"')
+		if endQuote == -1 {
+			result.WriteString(html[hrefIndex+6:])
+			break
+		}
+		endQuote += hrefIndex + 6
+		
+		// Process the href value
+		hrefValue := html[hrefIndex+6:endQuote]
+		if hashIndex := strings.IndexByte(hrefValue, '#'); hashIndex != -1 {
+			// Lowercase everything after the #
+			hrefValue = hrefValue[:hashIndex+1] + strings.ToLower(hrefValue[hashIndex+1:])
+		}
+		result.WriteString(hrefValue)
+		
+		start = endQuote
+	}
+	
+	return result.String()
+}
+
 func isRedirect(content string) (string, bool) {
 	// Look for redirect patterns in the HTML
 	redirectPrefix := "<li>REDIRECT <a href=\""
@@ -344,12 +382,18 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 			if err != nil {
 				data.Error = fmt.Sprintf("Error converting with pandoc: %v\nOutput:\n%s", err, string(output))
 			} else {
+				// Process the HTML output
+				htmlContent := string(output)
+				
 				// Check if this is a redirect page
-				if target, isRedirect := isRedirect(string(output)); isRedirect {
+				if target, isRedirect := isRedirect(htmlContent); isRedirect {
 					http.Redirect(w, r, "/wiki/"+target, http.StatusFound)
 					return
 				}
-				data.Content = template.HTML(output)
+				
+				// Lowercase anchor tags in href attributes
+				htmlContent = lowercaseAnchors(htmlContent)
+				data.Content = template.HTML(htmlContent)
 			}
 		}
 	}
