@@ -62,7 +62,14 @@ a {
     transition: color 0.2s;
 }
 
-a:hover { color: #2980b9; }
+a:visited {
+    color: #8e44ad;
+}
+
+a:hover { 
+    color: #2980b9;
+    text-decoration: underline;
+}
 
 .content {
     margin-top: 2rem;
