@@ -136,8 +136,9 @@ input[type="submit"]:hover {
     font-size: 1.2rem;
 }
 
-/* Style for image alt text */
-img[alt] {
+/* Style for image alt text and figures */
+img[alt],
+figure {
     display: block;
     padding: 8px;
     margin: 8px 0;
@@ -149,7 +150,21 @@ img[alt] {
     max-width: 100%;
 }
 
+/* Hide images inside figures */
+figure img {
+    display: none;
+}
+
 /* Style for broken image icons */
-img[alt]:before {
+img[alt]:before,
+figure:before {
     content: "🖼️ ";
+}
+
+/* Style figure captions */
+figcaption {
+    display: block;
+    margin-top: 4px;
+    font-style: normal;
+    color: #444;
 }
