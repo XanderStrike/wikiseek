@@ -71,10 +71,6 @@ a:hover { color: #2980b9; }
 }
 
 /* Search specific styles */
-form {
-    margin: 2rem 0;
-}
-
 input[type="text"] {
     width: 300px;
     padding: 8px 12px;
