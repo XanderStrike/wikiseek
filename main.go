@@ -324,16 +324,16 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 
 	xmlData, err := ExtractBzip2Range(inputFile, entry.Offsets.Start, entry.Offsets.End)
 	if err != nil {
-		data.Error = err.Error()
+		data.Error = fmt.Sprintf("Error extracting data range: %v", err)
 	} else {
 		text, err := ExtractPageText(xmlData, entry.PageID)
 		if err != nil {
-			data.Error = err.Error()
+			data.Error = fmt.Sprintf("Error extracting page text: %v", err)
 		} else {
 			cmd := exec.Command("pandoc", "-f", "mediawiki", "-t", "html")
 			stdin, err := cmd.StdinPipe()
 			if err != nil {
-				data.Error = err.Error()
+				data.Error = fmt.Sprintf("Error creating pandoc stdin pipe: %v", err)
 				return
 			}
 			go func() {
@@ -342,7 +342,7 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 			}()
 			output, err := cmd.Output()
 			if err != nil {
-				data.Error = err.Error()
+				data.Error = fmt.Sprintf("Error converting with pandoc: %v", err)
 			} else {
 				// Check if this is a redirect page
 				if target, isRedirect := isRedirect(string(output)); isRedirect {
