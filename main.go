@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -328,21 +329,15 @@ func lowercaseAnchors(html string) string {
 }
 
 func isRedirect(content string) (string, bool) {
-	// Look for redirect patterns in the HTML
-	redirectPrefix := "<li>REDIRECT <a href=\""
-	start := strings.Index(content, redirectPrefix)
-	if start == -1 {
+	// Look for redirect patterns in the HTML using regex
+	re := regexp.MustCompile(`(?i)<li>\s*redirect\s*<a\s+href="([^"]+)"`)
+	matches := re.FindStringSubmatch(content)
+	if len(matches) < 2 {
 		return "", false
 	}
-
+	
 	// Extract the target title from the href
-	start += len(redirectPrefix)
-	end := strings.Index(content[start:], "\"")
-	if end == -1 {
-		return "", false
-	}
-
-	target := content[start : start+end]
+	target := matches[1]
 	return target, true
 }
 
