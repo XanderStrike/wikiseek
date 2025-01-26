@@ -138,9 +138,9 @@ input[type="submit"]:hover {
 
 /* Style for image alt text */
 img[alt] {
-    display: inline-block;
+    display: block;
     padding: 8px;
-    margin: 4px 0;
+    margin: 8px 0;
     background: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 4px;
