@@ -114,11 +114,11 @@ func newOffsetCache() *offsetCache {
 func (oc *offsetCache) getOrCreate(start, end int64) *OffsetPair {
 	// Create a unique key from the two int64s
 	key := uint64(start)<<32 | uint64(uint32(end))
-	
+
 	if pair, ok := oc.pairs[key]; ok {
 		return pair
 	}
-	
+
 	pair := &OffsetPair{Start: start, End: end}
 	oc.pairs[key] = pair
 	return pair
@@ -249,12 +249,12 @@ func loadIndex(filename string) ([]IndexEntry, error) {
 	}
 
 	fmt.Printf("Index loaded with %d entries in %d streams\n", len(allEntries), len(offsets.pairs))
-	
+
 	// Save to cache for next time
 	if err := saveIndexCache(allEntries, filename+".cache"); err != nil {
 		fmt.Printf("Warning: failed to save index cache: %v\n", err)
 	}
-	
+
 	return allEntries, nil
 }
 
@@ -296,15 +296,15 @@ func isRedirect(content string) (string, bool) {
 	if start == -1 {
 		return "", false
 	}
-	
+
 	// Extract the target title from the href
 	start += len(redirectPrefix)
 	end := strings.Index(content[start:], "\"")
 	if end == -1 {
 		return "", false
 	}
-	
-	target := content[start:start+end]
+
+	target := content[start : start+end]
 	return target, true
 }
 
