@@ -291,6 +291,12 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 	return nil
 }
 
+func stripImgDimensions(html string) string {
+	// Remove width and height attributes from img tags
+	re := regexp.MustCompile(`(<img[^>]+)(width|height)="[^"]*"`)
+	return re.ReplaceAllString(html, "$1")
+}
+
 func lowercaseAnchors(html string) string {
 	var result strings.Builder
 	start := 0
@@ -410,7 +416,8 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 					return
 				}
 				
-				// Lowercase anchor tags in href attributes
+				// Process the HTML content
+				htmlContent = stripImgDimensions(htmlContent)
 				htmlContent = lowercaseAnchors(htmlContent)
 				data.Content = template.HTML(htmlContent)
 			}
