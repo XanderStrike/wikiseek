@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Page represents a Wikipedia page XML structure
@@ -359,9 +360,17 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 	// Extract the title from the URL path
 	title := strings.TrimPrefix(r.URL.Path, "/wiki/")
 
+	// Log the request
+	start := time.Now()
+	defer func() {
+		duration := time.Since(start)
+		fmt.Printf("[%s] %s %s %v\n", time.Now().Format("2006-01-02 15:04:05"), r.Method, r.URL.Path, duration)
+	}()
+
 	entry := findPageByTitle(index, title)
 	if entry == nil {
 		http.NotFound(w, r)
+		fmt.Printf("[%s] 404 Not Found: %s\n", time.Now().Format("2006-01-02 15:04:05"), r.URL.Path)
 		return
 	}
 
@@ -396,6 +405,7 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 				
 				// Check if this is a redirect page
 				if target, isRedirect := isRedirect(htmlContent); isRedirect {
+					fmt.Printf("[%s] 302 Redirect: %s -> %s\n", time.Now().Format("2006-01-02 15:04:05"), r.URL.Path, target)
 					http.Redirect(w, r, "/wiki/"+target, http.StatusFound)
 					return
 				}
