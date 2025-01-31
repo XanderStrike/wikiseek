@@ -470,9 +470,12 @@ func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmp
 	tmpl.Execute(w, data)
 }
 
+var (
+	indexFile = flag.String("index", "", "Path to index file")
+)
+
 func main() {
 	inputFile := flag.String("file", "", "Path to multistream bzip2 file")
-	indexFile := flag.String("index", "", "Path to index file")
 	port := flag.String("port", "8080", "Port to run the server on")
 	flag.Parse()
 
