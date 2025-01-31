@@ -420,6 +420,27 @@ blockquote p {
     margin: 0;
 }
 
+/* Code block styling */
+code {
+    background-color: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 0.9em;
+    color: #e83e8c;
+}
+
+pre code {
+    display: block;
+    padding: 1rem;
+    overflow-x: auto;
+    line-height: 1.45;
+    background-color: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    color: #2c3e50;
+}
+
 /* Style definition lists like blockquotes */
 dl {
     margin: 1.5rem 0;
