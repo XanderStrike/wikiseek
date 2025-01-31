@@ -127,12 +127,14 @@ func (oc *offsetCache) getOrCreate(start, end int64) *OffsetPair {
 }
 
 type PageData struct {
-	Error       string
-	Content     template.HTML
-	Query       string
-	Results     []IndexEntry
-	Title       string
-	RandomPages []IndexEntry
+	Error         string
+	Content       template.HTML
+	Query         string
+	Results       []IndexEntry
+	Title         string
+	RandomPages   []IndexEntry
+	IndexFile     string
+	ArticleCount  int
 }
 
 func saveIndexCache(entries []IndexEntry, cacheFile string) error {
@@ -461,7 +463,9 @@ func getRandomEntries(entries []IndexEntry, count int) []IndexEntry {
 
 func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	data := PageData{
-		RandomPages: getRandomEntries(index, 25),
+		RandomPages:  getRandomEntries(index, 25),
+		IndexFile:    *indexFile,
+		ArticleCount: len(index),
 	}
 	tmpl.Execute(w, data)
 }
