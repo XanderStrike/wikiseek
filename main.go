@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -464,7 +465,7 @@ func getRandomEntries(entries []IndexEntry, count int) []IndexEntry {
 func handleExtract(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *template.Template, index []IndexEntry) {
 	data := PageData{
 		RandomPages:  getRandomEntries(index, 25),
-		IndexFile:    *indexFile,
+		IndexFile:    filepath.Base(*indexFile),
 		ArticleCount: len(index),
 	}
 	tmpl.Execute(w, data)
