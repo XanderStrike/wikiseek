@@ -2,6 +2,9 @@
 
 WikiSeek is a Go-based web application that serves as a local Wikipedia browser and search engine. It allows you to host and browse Wikipedia content from a compressed Wikipedia XML dump file, providing fast search capabilities and article rendering.
 
+<img width="2442" alt="Screenshot 2025-01-31 at 4 20 58 PM" src="https://github.com/user-attachments/assets/30d07043-38df-4bd6-832f-46fc49e38104" />
+
+
 ## Features
 
 - Browse Wikipedia articles with rendered HTML output
