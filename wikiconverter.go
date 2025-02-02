@@ -60,6 +60,14 @@ func init() {
 
 		return `<div class="note">Other Uses: ` + strings.Join(links, ", ") + `</div>`
 	})
+
+	// Templates to completely ignore/skip
+	RegisterTemplateHandler("redirect", func(args []string) string {
+		return ""
+	})
+	RegisterTemplateHandler("good page", func(args []string) string {
+		return ""
+	})
 }
 
 // Matches [[link]] or [[link|text]]
