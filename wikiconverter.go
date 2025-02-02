@@ -91,11 +91,11 @@ func init() {
 		if len(args) == 0 {
 			return `<div class="plainlist"></div>`
 		}
-		
+
 		// Process the list content - it will already have wiki links converted
 		// by ConvertWikiTextToHTML before reaching here
-		content := args[0]
-		
+		content := strings.ReplaceAll(args[0], "* ", "")
+
 		return `<div class="plainlist">` + content + `</div>`
 	})
 
