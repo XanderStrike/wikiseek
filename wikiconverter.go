@@ -78,6 +78,14 @@ func init() {
 		return ""
 	})
 
+	// Nowrap template handler
+	RegisterTemplateHandler("nowrap", func(args []string) string {
+		if len(args) > 0 {
+			return `<span style="white-space:nowrap">` + args[0] + `</span>`
+		}
+		return ""
+	})
+
 }
 
 // Matches [[link]] or [[link|text]]
