@@ -89,14 +89,21 @@ func init() {
 	// Plainlist template handler
 	RegisterTemplateHandler("plainlist", func(args []string) string {
 		if len(args) == 0 {
-			return `<div class="plainlist"></div>`
+			return `<ul class="plainlist"></ul>`
 		}
 
-		// Process the list content - it will already have wiki links converted
-		// by ConvertWikiTextToHTML before reaching here
-		content := strings.ReplaceAll(args[0], "* ", "")
+		// Split content into lines and wrap each line in <li> tags
+		lines := strings.Split(args[0], "\n")
+		var items []string
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "* ") {
+				line = strings.TrimPrefix(line, "* ")
+				items = append(items, "<li>"+line+"</li>")
+			}
+		}
 
-		return `<div class="plainlist">` + content + `</div>`
+		return `<ul class="plainlist">` + strings.Join(items, "\n") + `</ul>`
 	})
 
 }
