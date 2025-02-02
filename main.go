@@ -14,7 +14,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -395,22 +394,7 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 		if err != nil {
 			data.Error = fmt.Sprintf("Error extracting page text: %v", err)
 		} else {
-			cmd := exec.Command("pandoc", "-f", "mediawiki", "-t", "html")
-			stdin, err := cmd.StdinPipe()
-			if err != nil {
-				data.Error = fmt.Sprintf("Error creating pandoc stdin pipe: %v", err)
-				return
-			}
-			go func() {
-				defer stdin.Close()
-				io.WriteString(stdin, text)
-			}()
-			output, err := cmd.CombinedOutput()
-			if err != nil {
-				data.Error = fmt.Sprintf("Error converting with pandoc: %v\nOutput:\n%s", err, string(output))
-			} else {
-				// Process the HTML output
-				htmlContent := string(output)
+			htmlContent := ConvertWikiTextToHTML(text)
 
 				// Check if this is a redirect page
 				if target, isRedirect := isRedirect(htmlContent); isRedirect {
