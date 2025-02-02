@@ -101,6 +101,9 @@ func ConvertWikiTextToHTML(content string) string {
 
 // parseInfobox converts infobox template to HTML table
 func parseInfobox(lines []string) string {
+	// Log the raw template
+	fmt.Printf("Raw Infobox Template:\n%s\n---END INFOBOX---\n", strings.Join(lines, "\n"))
+
 	if len(lines) == 0 || !strings.HasPrefix(strings.ToLower(lines[0]), "{{infobox") {
 		return strings.Join(lines, "\n")
 	}
