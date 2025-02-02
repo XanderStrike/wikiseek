@@ -23,6 +23,23 @@ func RegisterTemplateHandler(name string, handler TemplateHandler) {
 	templateHandlers[name] = handler
 }
 
+// Register default template handlers
+func init() {
+	// See also template handler
+	RegisterTemplateHandler("see also", func(args []string) string {
+		if len(args) == 0 {
+			return `<div class="note">See Also</div>`
+		}
+		
+		var links []string
+		for _, arg := range args {
+			links = append(links, `<a href="/wiki/`+arg+`">`+arg+`</a>`)
+		}
+		
+		return `<div class="note">See Also: ` + strings.Join(links, ", ") + `</div>`
+	})
+}
+
 // ConvertWikiTextToHTML converts wikitext content to HTML
 func ConvertWikiTextToHTML(content string) string {
 	// Find all template matches
