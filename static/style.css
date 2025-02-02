@@ -294,54 +294,6 @@ input[type="submit"]:hover {
     font-size: 1.2rem;
 }
 
-/* Style for image alt text, figures and videos */
-img[alt],
-figure,
-video {
-    display: block;
-    padding: 8px;
-    margin: 8px 0;
-    background: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-style: italic;
-    color: #666;
-    max-width: 100%;
-}
-
-/* Show video title/alt text */
-video::before {
-    content: "🎥 " attr(title);
-    display: block;
-    margin-bottom: 8px;
-    font-style: normal;
-    color: #444;
-}
-
-/* Hide images inside figures */
-figure img {
-    display: none;
-}
-
-/* Style for broken image icons */
-img[alt]:before,
-figure:before {
-    content: "🖼️ ";
-}
-
-/* Style figure captions */
-figcaption {
-    display: block;
-    margin-top: 4px;
-    font-style: normal;
-    color: #444;
-}
-
-/* Hide footnote references and footnotes */
-.footnote-ref,
-.footnotes {
-    display: none;
-}
 
 /* Table styling */
 table {
@@ -390,10 +342,6 @@ tbody tr:nth-child(odd) {
     }
 }
 
-/* Hide bullets for empty list items */
-li:empty {
-    list-style: none;
-}
 
 /* Blockquote styling */
 blockquote {
@@ -448,30 +396,5 @@ pre code {
     background-color: #f8f9fa;
     border: 1px solid #eee;
     border-radius: 4px;
-    color: #2c3e50;
-}
-
-/* Style definition lists like blockquotes */
-dl {
-    margin: 1.5rem 0;
-    padding: 0 1.5rem;
-    border-left: 4px solid #3498db;
-    background-color: #f8f9fa;
-    color: #444;
-    position: relative;
-}
-
-dd {
-    margin: 0.75rem 0;
-    padding: 0.5rem 1rem;
-    background-color: #f0f0f0;
-    border-left: 2px solid #ddd;
-    font-style: italic;
-    color: #555;
-}
-
-dt {
-    font-weight: 600;
-    margin-top: 1rem;
     color: #2c3e50;
 }
