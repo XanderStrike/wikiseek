@@ -378,6 +378,18 @@ blockquote p {
     margin: 0;
 }
 
+/* Plainlist styling */
+.plainlist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.plainlist li {
+    margin: 0;
+    padding: 0;
+}
+
 /* Code block styling */
 code {
     background-color: #f8f9fa;
