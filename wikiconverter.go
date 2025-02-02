@@ -6,6 +6,20 @@ import (
 	"strings"
 )
 
+// TemplateHandler processes a template and returns HTML
+type TemplateHandler func([]string) string
+
+var templateHandlers = map[string]TemplateHandler{
+    "infobox": parseInfobox,
+    "usd": handleUSDTemplate,
+    "other uses": handleOtherUsesTemplate, 
+    "short description": handleShortDescriptionTemplate,
+    "main": handleMainTemplate,
+    "see also": handleSeeAlsoTemplate,
+    "lang": handleLangTemplate,
+    "langx": handleLangTemplate, // Handle both lang and langx the same way
+}
+
 // ConvertWikiTextToHTML converts wikitext content to HTML
 func ConvertWikiTextToHTML(content string) string {
 	var outputLines []string
@@ -46,9 +60,11 @@ func ConvertWikiTextToHTML(content string) string {
 				templateOpenCount += strings.Count(line, "{{") - strings.Count(line, "}}")
 			}
 
-			if strings.HasPrefix(strings.ToLower(templateLines[0]), "{{infobox") {
-				outputLines = append(outputLines, parseInfobox(templateLines))
+			templateName := getTemplateName(templateLines[0])
+			if handler, exists := templateHandlers[templateName]; exists {
+				outputLines = append(outputLines, handler(templateLines))
 			} else {
+				// Handle unknown templates
 				for _, tline := range templateLines {
 					parsedLine := removeTemplates(tline)
 					parsedLine = parseHeader(parsedLine)
@@ -122,57 +138,21 @@ func parseInfobox(lines []string) string {
 
 // removeTemplates removes unwanted template tags
 func removeTemplates(line string) string {
-	// Handle USD template
-	usdTemplate := regexp.MustCompile(`\{\{USD\|(\d+)(?:\|[^}]*)?}}`)
-	line = usdTemplate.ReplaceAllString(line, "$$$1")
+    // Remove <ref></ref> tags and their contents, including empty ones
+    refTags := regexp.MustCompile(`<ref[^>]*>(.*?)</ref>|<ref[^>]*></ref>`)
+    line = refTags.ReplaceAllString(line, "")
 
-	// Remove specific templates like {{pp-move}}, {{--)}}
-	specificTemplates := regexp.MustCompile(`\{\{(pp-move|--\)|!|Pp-semi-indef|Good article|Sfn[^}]*|Sfnm[^}]*|refn.*?)\}\}`)
-	line = specificTemplates.ReplaceAllString(line, "")
+    // Also remove single <ref /> tags
+    singleRefTags := regexp.MustCompile(`<ref[^>]*/>`)
+    line = singleRefTags.ReplaceAllString(line, "")
 
-	// Handle Other uses template
-	otherUsesRegex := regexp.MustCompile(`\{\{Other uses\|([^|}]+)(?:\|([^}]+))?}}`)
-	line = otherUsesRegex.ReplaceAllStringFunc(line, func(match string) string {
-		parts := otherUsesRegex.FindStringSubmatch(match)
-		mainLink := fmt.Sprintf(`<a href="%s">%s</a>`, parts[1], parts[1])
-		otherLinks := ""
-		if len(parts) > 2 && parts[2] != "" {
-			linkParts := strings.Split(parts[2], "|")
-			for _, link := range linkParts {
-				otherLinks += fmt.Sprintf(`, <a href="%s">%s</a>`, link, link)
-			}
-		}
-		return fmt.Sprintf(`<div class="note">For other uses, see %s%s</div>`, mainLink, otherLinks)
-	})
+    // Remove cite templates
+    citeTemplates := regexp.MustCompile(`(?i)\{\{cite[^}]*\}\}`)
+    line = citeTemplates.ReplaceAllString(line, "")
 
-	// Handle Short description template
-	shortDescRegex := regexp.MustCompile(`\{\{Short description\|([^}]+)}}`)
-	line = shortDescRegex.ReplaceAllString(line, `<em class="short-description">$1</em>`)
-
-	// Handle Main template
-	mainRegex := regexp.MustCompile(`\{\{Main\|([^}]+)}}`)
-	line = mainRegex.ReplaceAllString(line, `<div class="note">Main article: <a href="$1">$1</a></div>`)
-
-	// Handle See also template
-	seeAlsoRegex := regexp.MustCompile(`\{\{See also\|([^}]+)}}`)
-	line = seeAlsoRegex.ReplaceAllString(line, `<div class="note">See also: <a href="$1">$1</a></div>`)
-
-	// Handle Lang template
-	langRegex := regexp.MustCompile(`\{\{Lang[x]?\|([^|]+)\|(?:link=no\|)?([^}]+)}}`)
-	line = langRegex.ReplaceAllString(line, `$1: <em>$2</em>`)
-
-	// Remove only specific templates we want to handle
-	// Let other templates pass through
-	citeTemplates := regexp.MustCompile(`(?i)\{\{cite[^}]*\}\}`)
-	line = citeTemplates.ReplaceAllString(line, "")
-
-	// Remove <ref></ref> tags and their contents, including empty ones
-	refTags := regexp.MustCompile(`<ref[^>]*>(.*?)</ref>|<ref[^>]*></ref>`)
-	line = refTags.ReplaceAllString(line, "")
-
-	// Also remove single <ref /> tags
-	singleRefTags := regexp.MustCompile(`<ref[^>]*/>`)
-	return singleRefTags.ReplaceAllString(line, "")
+    // Remove specific templates that should be ignored
+    ignoreTemplates := regexp.MustCompile(`\{\{(pp-move|--\)|!|Pp-semi-indef|Good article|Sfn[^}]*|Sfnm[^}]*|refn.*?)\}\}`)
+    return ignoreTemplates.ReplaceAllString(line, "")
 }
 
 // parseLinks converts wikitext links to HTML links
@@ -364,6 +344,103 @@ func parseStyle(line string) string {
 	line = italicRegex.ReplaceAllString(line, "<i>$1</i>")
 
 	return line
+}
+
+func handleUSDTemplate(lines []string) string {
+    if len(lines) == 0 {
+        return ""
+    }
+    // Extract amount from {{USD|amount|...}}
+    usdTemplate := regexp.MustCompile(`\{\{USD\|(\d+)(?:\|[^}]*)?}}`)
+    matches := usdTemplate.FindStringSubmatch(lines[0])
+    if len(matches) > 1 {
+        return "$" + matches[1]
+    }
+    return lines[0]
+}
+
+func handleOtherUsesTemplate(lines []string) string {
+    if len(lines) == 0 {
+        return ""
+    }
+    otherUsesRegex := regexp.MustCompile(`\{\{Other uses\|([^|}]+)(?:\|([^}]+))?}}`)
+    matches := otherUsesRegex.FindStringSubmatch(lines[0])
+    if len(matches) < 2 {
+        return lines[0]
+    }
+    
+    mainLink := fmt.Sprintf(`<a href="%s">%s</a>`, matches[1], matches[1])
+    otherLinks := ""
+    if len(matches) > 2 && matches[2] != "" {
+        linkParts := strings.Split(matches[2], "|")
+        for _, link := range linkParts {
+            otherLinks += fmt.Sprintf(`, <a href="%s">%s</a>`, link, link)
+        }
+    }
+    return fmt.Sprintf(`<div class="note">For other uses, see %s%s</div>`, mainLink, otherLinks)
+}
+
+func handleShortDescriptionTemplate(lines []string) string {
+    if len(lines) == 0 {
+        return ""
+    }
+    shortDescRegex := regexp.MustCompile(`\{\{Short description\|([^}]+)}}`)
+    matches := shortDescRegex.FindStringSubmatch(lines[0])
+    if len(matches) > 1 {
+        return fmt.Sprintf(`<em class="short-description">%s</em>`, matches[1])
+    }
+    return lines[0]
+}
+
+func handleMainTemplate(lines []string) string {
+    if len(lines) == 0 {
+        return ""
+    }
+    mainRegex := regexp.MustCompile(`\{\{Main\|([^}]+)}}`)
+    matches := mainRegex.FindStringSubmatch(lines[0])
+    if len(matches) > 1 {
+        return fmt.Sprintf(`<div class="note">Main article: <a href="%s">%s</a></div>`, matches[1], matches[1])
+    }
+    return lines[0]
+}
+
+func handleSeeAlsoTemplate(lines []string) string {
+    if len(lines) == 0 {
+        return ""
+    }
+    seeAlsoRegex := regexp.MustCompile(`\{\{See also\|([^}]+)}}`)
+    matches := seeAlsoRegex.FindStringSubmatch(lines[0])
+    if len(matches) > 1 {
+        return fmt.Sprintf(`<div class="note">See also: <a href="%s">%s</a></div>`, matches[1], matches[1])
+    }
+    return lines[0]
+}
+
+func handleLangTemplate(lines []string) string {
+    if len(lines) == 0 {
+        return ""
+    }
+    langRegex := regexp.MustCompile(`\{\{Lang[x]?\|([^|]+)\|(?:link=no\|)?([^}]+)}}`)
+    matches := langRegex.FindStringSubmatch(lines[0])
+    if len(matches) > 2 {
+        return fmt.Sprintf(`%s: <em>%s</em>`, matches[1], matches[2])
+    }
+    return lines[0]
+}
+
+func getTemplateName(line string) string {
+    if !strings.HasPrefix(line, "{{") {
+        return ""
+    }
+    
+    // Extract template name between {{ and first | or }}
+    content := strings.TrimPrefix(line, "{{")
+    end := strings.IndexAny(content, "|}")
+    if end == -1 {
+        return ""
+    }
+    
+    return strings.ToLower(strings.TrimSpace(content[:end]))
 }
 
 // parseHeader converts wikitext headers to HTML headers
