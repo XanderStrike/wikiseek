@@ -102,7 +102,7 @@ func parseInfobox(lines []string) string {
 	var tableRows []string
 	tableRows = append(tableRows, "<table class=\"infobox\">")
 
-	// Extract title from first line
+	// Extract title from first line, case insensitive
 	title := strings.TrimPrefix(strings.ToLower(lines[0]), "{{infobox")
 	title = strings.TrimSpace(title)
 	if title != "" {
