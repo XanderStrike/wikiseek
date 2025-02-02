@@ -62,9 +62,28 @@ func init() {
 	})
 }
 
+// Matches [[link]] or [[link|text]]
+var linkPattern = regexp.MustCompile(`\[\[([^\[\]]+?)(?:\|([^\[\]]+?))?\]\]`)
+
 // ConvertWikiTextToHTML converts wikitext content to HTML
 func ConvertWikiTextToHTML(content string) string {
-	// Find all template matches
+	// First process all links
+	content = linkPattern.ReplaceAllStringFunc(content, func(match string) string {
+		parts := linkPattern.FindStringSubmatch(match)
+		if len(parts) < 2 {
+			return match
+		}
+		
+		linkTarget := strings.TrimSpace(parts[1])
+		linkText := linkTarget
+		if len(parts) > 2 && parts[2] != "" {
+			linkText = strings.TrimSpace(parts[2])
+		}
+		
+		return `<a href="` + linkTarget + `">` + linkText + `</a>`
+	})
+
+	// Then process all template matches
 	matches := templatePattern.FindAllStringSubmatch(content, -1)
 
 	for _, match := range matches {
