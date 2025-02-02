@@ -178,6 +178,16 @@ a:hover {
     hyphens: auto;
 }
 
+.note {
+    font-style: italic;
+    color: #666;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-left: 3px solid #ddd;
+    border-radius: 2px;
+}
+
 .content img {
     max-width: 100%;
     height: auto;
