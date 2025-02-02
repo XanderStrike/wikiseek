@@ -10,14 +10,14 @@ import (
 type TemplateHandler func([]string) string
 
 var templateHandlers = map[string]TemplateHandler{
-    "infobox": parseInfobox,
-    "usd": handleUSDTemplate,
-    "other uses": handleOtherUsesTemplate, 
-    "short description": handleShortDescriptionTemplate,
-    "main": handleMainTemplate,
-    "see also": handleSeeAlsoTemplate,
-    "lang": handleLangTemplate,
-    "langx": handleLangTemplate, // Handle both lang and langx the same way
+	"infobox":           parseInfobox,
+	"usd":               handleUSDTemplate,
+	"other uses":        handleOtherUsesTemplate,
+	"short description": handleShortDescriptionTemplate,
+	"main":              handleMainTemplate,
+	"see also":          handleSeeAlsoTemplate,
+	"lang":              handleLangTemplate,
+	"langx":             handleLangTemplate, // Handle both lang and langx the same way
 }
 
 // ConvertWikiTextToHTML converts wikitext content to HTML
@@ -80,7 +80,7 @@ func ConvertWikiTextToHTML(content string) string {
 				i += processedLines - 1
 				continue
 			}
-			
+
 			parsedLine := removeTemplates(line)
 			parsedLine = parseHeader(parsedLine)
 			parsedLine = parseLinks(parsedLine)
@@ -138,21 +138,21 @@ func parseInfobox(lines []string) string {
 
 // removeTemplates removes unwanted template tags
 func removeTemplates(line string) string {
-    // Remove <ref></ref> tags and their contents, including empty ones
-    refTags := regexp.MustCompile(`<ref[^>]*>(.*?)</ref>|<ref[^>]*></ref>`)
-    line = refTags.ReplaceAllString(line, "")
+	// Remove <ref></ref> tags and their contents, including empty ones
+	refTags := regexp.MustCompile(`<ref[^>]*>(.*?)</ref>|<ref[^>]*></ref>`)
+	line = refTags.ReplaceAllString(line, "")
 
-    // Also remove single <ref /> tags
-    singleRefTags := regexp.MustCompile(`<ref[^>]*/>`)
-    line = singleRefTags.ReplaceAllString(line, "")
+	// Also remove single <ref /> tags
+	singleRefTags := regexp.MustCompile(`<ref[^>]*/>`)
+	line = singleRefTags.ReplaceAllString(line, "")
 
-    // Remove cite templates
-    citeTemplates := regexp.MustCompile(`(?i)\{\{cite[^}]*\}\}`)
-    line = citeTemplates.ReplaceAllString(line, "")
+	// Remove cite templates
+	citeTemplates := regexp.MustCompile(`(?i)\{\{cite[^}]*\}\}`)
+	line = citeTemplates.ReplaceAllString(line, "")
 
-    // Remove specific templates that should be ignored
-    ignoreTemplates := regexp.MustCompile(`\{\{(pp-move|--\)|!|Pp-semi-indef|Good article|Sfn[^}]*|Sfnm[^}]*|refn.*?)\}\}`)
-    return ignoreTemplates.ReplaceAllString(line, "")
+	// Remove specific templates that should be ignored
+	ignoreTemplates := regexp.MustCompile(`\{\{(pp-move|--\)|!|Pp-semi-indef|Good article|Sfn[^}]*|Sfnm[^}]*|refn.*?)\}\}`)
+	return ignoreTemplates.ReplaceAllString(line, "")
 }
 
 // parseLinks converts wikitext links to HTML links
@@ -347,105 +347,105 @@ func parseStyle(line string) string {
 }
 
 func handleUSDTemplate(lines []string) string {
-    if len(lines) == 0 {
-        return ""
-    }
-    // Make regex case insensitive with (?i)
-    usdTemplate := regexp.MustCompile(`(?i)\{\{USD\|(\d+)(?:\|[^}]*)?}}`)
-    matches := usdTemplate.FindStringSubmatch(lines[0])
-    if len(matches) > 1 {
-        return "$" + matches[1]
-    }
-    return lines[0]
+	if len(lines) == 0 {
+		return ""
+	}
+	// Make regex case insensitive with (?i)
+	usdTemplate := regexp.MustCompile(`(?i)\{\{USD\|(\d+)(?:\|[^}]*)?}}`)
+	matches := usdTemplate.FindStringSubmatch(lines[0])
+	if len(matches) > 1 {
+		return "$" + matches[1]
+	}
+	return lines[0]
 }
 
 func handleOtherUsesTemplate(lines []string) string {
-    if len(lines) == 0 {
-        return ""
-    }
-    // Make regex case insensitive with (?i)
-    otherUsesRegex := regexp.MustCompile(`(?i)\{\{Other uses\|([^|}]+)(?:\|([^}]+))?}}`)
-    matches := otherUsesRegex.FindStringSubmatch(lines[0])
-    if len(matches) < 2 {
-        return lines[0]
-    }
-    
-    mainLink := fmt.Sprintf(`<a href="%s">%s</a>`, matches[1], matches[1])
-    otherLinks := ""
-    if len(matches) > 2 && matches[2] != "" {
-        linkParts := strings.Split(matches[2], "|")
-        for _, link := range linkParts {
-            otherLinks += fmt.Sprintf(`, <a href="%s">%s</a>`, link, link)
-        }
-    }
-    return fmt.Sprintf(`<div class="note">For other uses, see %s%s</div>`, mainLink, otherLinks)
+	if len(lines) == 0 {
+		return ""
+	}
+	// Make regex case insensitive with (?i)
+	otherUsesRegex := regexp.MustCompile(`(?i)\{\{Other uses\|([^|}]+)(?:\|([^}]+))?}}`)
+	matches := otherUsesRegex.FindStringSubmatch(lines[0])
+	if len(matches) < 2 {
+		return lines[0]
+	}
+
+	mainLink := fmt.Sprintf(`<a href="%s">%s</a>`, matches[1], matches[1])
+	otherLinks := ""
+	if len(matches) > 2 && matches[2] != "" {
+		linkParts := strings.Split(matches[2], "|")
+		for _, link := range linkParts {
+			otherLinks += fmt.Sprintf(`, <a href="%s">%s</a>`, link, link)
+		}
+	}
+	return fmt.Sprintf(`<div class="note">For other uses, see %s%s</div>`, mainLink, otherLinks)
 }
 
 func handleShortDescriptionTemplate(lines []string) string {
-    if len(lines) == 0 {
-        return ""
-    }
-    // Make regex case insensitive with (?i)
-    shortDescRegex := regexp.MustCompile(`(?i)\{\{Short description\|([^}]+)}}`)
-    matches := shortDescRegex.FindStringSubmatch(lines[0])
-    if len(matches) > 1 {
-        return fmt.Sprintf(`<em class="short-description">%s</em>`, matches[1])
-    }
-    return lines[0]
+	if len(lines) == 0 {
+		return ""
+	}
+	// Make regex case insensitive with (?i)
+	shortDescRegex := regexp.MustCompile(`(?i)\{\{Short description\|([^}]+)}}`)
+	matches := shortDescRegex.FindStringSubmatch(lines[0])
+	if len(matches) > 1 {
+		return fmt.Sprintf(`<em class="short-description">%s</em>`, matches[1])
+	}
+	return lines[0]
 }
 
 func handleMainTemplate(lines []string) string {
-    if len(lines) == 0 {
-        return ""
-    }
-    // Make regex case insensitive with (?i)
-    mainRegex := regexp.MustCompile(`(?i)\{\{Main\|([^}]+)}}`)
-    matches := mainRegex.FindStringSubmatch(lines[0])
-    if len(matches) > 1 {
-        return fmt.Sprintf(`<div class="note">Main article: <a href="%s">%s</a></div>`, matches[1], matches[1])
-    }
-    return lines[0]
+	if len(lines) == 0 {
+		return ""
+	}
+	// Make regex case insensitive with (?i)
+	mainRegex := regexp.MustCompile(`(?i)\{\{Main\|([^}]+)}}`)
+	matches := mainRegex.FindStringSubmatch(lines[0])
+	if len(matches) > 1 {
+		return fmt.Sprintf(`<div class="note">Main article: <a href="%s">%s</a></div>`, matches[1], matches[1])
+	}
+	return lines[0]
 }
 
 func handleSeeAlsoTemplate(lines []string) string {
-    if len(lines) == 0 {
-        return ""
-    }
-    // Make regex case insensitive with (?i)
-    seeAlsoRegex := regexp.MustCompile(`(?i)\{\{See also\|([^}]+)}}`)
-    matches := seeAlsoRegex.FindStringSubmatch(lines[0])
-    if len(matches) > 1 {
-        return fmt.Sprintf(`<div class="note">See also: <a href="%s">%s</a></div>`, matches[1], matches[1])
-    }
-    return lines[0]
+	if len(lines) == 0 {
+		return ""
+	}
+	// Make regex case insensitive with (?i)
+	seeAlsoRegex := regexp.MustCompile(`(?i)\{\{See also\|([^}]+)}}`)
+	matches := seeAlsoRegex.FindStringSubmatch(lines[0])
+	if len(matches) > 1 {
+		return fmt.Sprintf(`<div class="note">See also: <a href="%s">%s</a></div>`, matches[1], matches[1])
+	}
+	return lines[0]
 }
 
 func handleLangTemplate(lines []string) string {
-    if len(lines) == 0 {
-        return ""
-    }
-    // Make regex case insensitive with (?i)
-    langRegex := regexp.MustCompile(`(?i)\{\{Lang[x]?\|([^|]+)\|(?:link=no\|)?([^}]+)}}`)
-    matches := langRegex.FindStringSubmatch(lines[0])
-    if len(matches) > 2 {
-        return fmt.Sprintf(`%s: <em>%s</em>`, matches[1], matches[2])
-    }
-    return lines[0]
+	if len(lines) == 0 {
+		return ""
+	}
+	// Make regex case insensitive with (?i)
+	langRegex := regexp.MustCompile(`(?i)\{\{Lang[x]?\|([^|]+)\|(?:link=no\|)?([^}]+)}}`)
+	matches := langRegex.FindStringSubmatch(lines[0])
+	if len(matches) > 2 {
+		return fmt.Sprintf(`%s: <em>%s</em>`, matches[1], matches[2])
+	}
+	return lines[0]
 }
 
 func getTemplateName(line string) string {
-    if !strings.HasPrefix(line, "{{") {
-        return ""
-    }
-    
-    // Extract template name between {{ and first | or }}
-    content := strings.TrimPrefix(line, "{{")
-    end := strings.IndexAny(content, "|}")
-    if end == -1 {
-        return ""
-    }
-    
-    return strings.ToLower(strings.TrimSpace(content[:end]))
+	if !strings.HasPrefix(line, "{{") {
+		return ""
+	}
+
+	// Extract template name between {{ and first | or }}
+	content := strings.TrimPrefix(line, "{{")
+	end := strings.IndexAny(content, "|}")
+	if end == -1 {
+		return ""
+	}
+
+	return strings.ToLower(strings.TrimSpace(content[:end]))
 }
 
 // parseHeader converts wikitext headers to HTML headers
