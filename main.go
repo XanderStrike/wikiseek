@@ -128,14 +128,14 @@ func (oc *offsetCache) getOrCreate(start, end int64) *OffsetPair {
 }
 
 type PageData struct {
-	Error         string
-	Content       template.HTML
-	Query         string
-	Results       []IndexEntry
-	Title         string
-	RandomPages   []IndexEntry
-	IndexFile     string
-	ArticleCount  int
+	Error        string
+	Content      template.HTML
+	Query        string
+	Results      []IndexEntry
+	Title        string
+	RandomPages  []IndexEntry
+	IndexFile    string
+	ArticleCount int
 }
 
 func saveIndexCache(entries []IndexEntry, cacheFile string) error {
@@ -303,7 +303,7 @@ func stripImgDimensions(html string) string {
 func lowercaseAnchors(html string) string {
 	var result strings.Builder
 	start := 0
-	
+
 	for {
 		// Find next href attribute
 		hrefIndex := strings.Index(html[start:], "href=\"")
@@ -312,10 +312,10 @@ func lowercaseAnchors(html string) string {
 			break
 		}
 		hrefIndex += start
-		
+
 		// Write everything up to the href
-		result.WriteString(html[start:hrefIndex+6])
-		
+		result.WriteString(html[start : hrefIndex+6])
+
 		// Find the end of the href value
 		endQuote := strings.IndexByte(html[hrefIndex+6:], '"')
 		if endQuote == -1 {
@@ -323,9 +323,9 @@ func lowercaseAnchors(html string) string {
 			break
 		}
 		endQuote += hrefIndex + 6
-		
+
 		// Process the href value
-		hrefValue := html[hrefIndex+6:endQuote]
+		hrefValue := html[hrefIndex+6 : endQuote]
 		// Skip category links entirely
 		if strings.HasPrefix(hrefValue, "Category:") {
 			// Find the closing </a> tag
@@ -338,17 +338,17 @@ func lowercaseAnchors(html string) string {
 			start = endQuote + aEnd + 4
 			continue
 		}
-				
+
 		// Process non-category links
 		if hashIndex := strings.IndexByte(hrefValue, '#'); hashIndex != -1 {
 			// Lowercase everything after the #
 			hrefValue = hrefValue[:hashIndex+1] + strings.ToLower(hrefValue[hashIndex+1:])
 		}
 		result.WriteString(hrefValue)
-		
+
 		start = endQuote
 	}
-	
+
 	return result.String()
 }
 
@@ -359,7 +359,7 @@ func isRedirect(content string) (string, bool) {
 	if len(matches) < 2 {
 		return "", false
 	}
-	
+
 	// Extract the target title from the href
 	target := matches[1]
 	return target, true
@@ -411,14 +411,14 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 			} else {
 				// Process the HTML output
 				htmlContent := string(output)
-				
+
 				// Check if this is a redirect page
 				if target, isRedirect := isRedirect(htmlContent); isRedirect {
 					fmt.Printf("[%s] 302 Redirect: %s -> %s\n", time.Now().Format("2006-01-02 15:04:05"), r.URL.Path, target)
 					http.Redirect(w, r, "/wiki/"+target, http.StatusFound)
 					return
 				}
-				
+
 				// Process the HTML content
 				htmlContent = stripImgDimensions(htmlContent)
 				htmlContent = lowercaseAnchors(htmlContent)
