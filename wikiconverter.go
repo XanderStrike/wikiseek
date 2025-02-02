@@ -68,7 +68,7 @@ func ConvertWikiTextToHTML(content string) string {
 		if len(argsMatch) > 2 && argsMatch[2] != "" {
 			// Split arguments by | but handle multi-line arguments
 			args = parseTemplateArguments(argsMatch[2])
-			
+
 			// Process any nested templates in the arguments
 			for i, arg := range args {
 				args[i] = ConvertWikiTextToHTML(arg)
@@ -76,11 +76,11 @@ func ConvertWikiTextToHTML(content string) string {
 		}
 
 		// Get handler or use default
-		handler, exists := templateHandlers[templateName]
+		handler, exists := templateHandlers[strings.ToLower(templateName)]
 		if !exists {
 			// Default handler for unknown templates
 			handler = func(args []string) string {
-				return `<div style="color:red">` + fullMatch + `</div>`
+				return `<div style="color:red">No match for "` + templateName + `": ` + fullMatch + `</div>`
 			}
 		}
 
