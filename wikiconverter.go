@@ -60,6 +60,11 @@ func ConvertWikiTextToHTML(content string) string {
 		if len(argsMatch) > 2 && argsMatch[2] != "" {
 			// Split arguments by | but handle multi-line arguments
 			args = parseTemplateArguments(argsMatch[2])
+			
+			// Process any nested templates in the arguments
+			for i, arg := range args {
+				args[i] = ConvertWikiTextToHTML(arg)
+			}
 		}
 
 		// Get handler or use default
