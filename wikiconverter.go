@@ -86,6 +86,19 @@ func init() {
 		return ""
 	})
 
+	// Plainlist template handler
+	RegisterTemplateHandler("plainlist", func(args []string) string {
+		if len(args) == 0 {
+			return `<div class="plainlist"></div>`
+		}
+		
+		// Process the list content - it will already have wiki links converted
+		// by ConvertWikiTextToHTML before reaching here
+		content := args[0]
+		
+		return `<div class="plainlist">` + content + `</div>`
+	})
+
 }
 
 // Matches [[link]] or [[link|text]]
