@@ -68,6 +68,16 @@ func init() {
 	RegisterTemplateHandler("good page", func(args []string) string {
 		return ""
 	})
+	RegisterTemplateHandler("pp-blp", func(args []string) string {
+		return ""
+	})
+	RegisterTemplateHandler("use mdy dates", func(args []string) string {
+		return ""
+	})
+	RegisterTemplateHandler("use american english", func(args []string) string {
+		return ""
+	})
+
 }
 
 // Matches [[link]] or [[link|text]]
@@ -81,18 +91,18 @@ func ConvertWikiTextToHTML(content string) string {
 		if len(parts) < 2 {
 			return match
 		}
-		
+
 		linkTarget := strings.TrimSpace(parts[1])
 		// Convert spaces to underscores in the link target
 		linkTarget = strings.ReplaceAll(linkTarget, " ", "_")
 		// URL encode the link target
 		linkTarget = strings.ReplaceAll(linkTarget, "/wiki/", "")
-		
+
 		linkText := linkTarget
 		if len(parts) > 2 && parts[2] != "" {
 			linkText = strings.TrimSpace(parts[2])
 		}
-		
+
 		return `<a href="/wiki/` + linkTarget + `">` + linkText + `</a>`
 	})
 
