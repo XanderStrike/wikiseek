@@ -25,6 +25,14 @@ func RegisterTemplateHandler(name string, handler TemplateHandler) {
 
 // Register default template handlers
 func init() {
+	// Short description template handler
+	RegisterTemplateHandler("short description", func(args []string) string {
+		if len(args) > 0 {
+			return `<em>` + args[0] + `</em>`
+		}
+		return ""
+	})
+
 	// See also template handler
 	RegisterTemplateHandler("see also", func(args []string) string {
 		if len(args) == 0 {
