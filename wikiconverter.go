@@ -75,12 +75,17 @@ func ConvertWikiTextToHTML(content string) string {
 		}
 		
 		linkTarget := strings.TrimSpace(parts[1])
+		// Convert spaces to underscores in the link target
+		linkTarget = strings.ReplaceAll(linkTarget, " ", "_")
+		// URL encode the link target
+		linkTarget = strings.ReplaceAll(linkTarget, "/wiki/", "")
+		
 		linkText := linkTarget
 		if len(parts) > 2 && parts[2] != "" {
 			linkText = strings.TrimSpace(parts[2])
 		}
 		
-		return `<a href="` + linkTarget + `">` + linkText + `</a>`
+		return `<a href="/wiki/` + linkTarget + `">` + linkText + `</a>`
 	})
 
 	// Then process all template matches
