@@ -46,6 +46,20 @@ func init() {
 
 		return `<div class="note">See Also: ` + strings.Join(links, ", ") + `</div>`
 	})
+
+	// Other uses template handler
+	RegisterTemplateHandler("other uses", func(args []string) string {
+		if len(args) == 0 {
+			return `<div class="note">Other Uses</div>`
+		}
+
+		var links []string
+		for _, arg := range args {
+			links = append(links, `<a href="/wiki/`+arg+`">`+arg+`</a>`)
+		}
+
+		return `<div class="note">Other Uses: ` + strings.Join(links, ", ") + `</div>`
+	})
 }
 
 // ConvertWikiTextToHTML converts wikitext content to HTML
