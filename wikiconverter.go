@@ -41,7 +41,7 @@ func init() {
 
 		var links []string
 		for _, arg := range args {
-			links = append(links, `<a href="/wiki/`+arg+`">`+arg+`</a>`)
+			links = append(links, `<a href="`+arg+`">`+arg+`</a>`)
 		}
 
 		return `<div class="note">See Also: ` + strings.Join(links, ", ") + `</div>`
@@ -55,7 +55,7 @@ func init() {
 
 		var links []string
 		for _, arg := range args {
-			links = append(links, `<a href="/wiki/`+arg+`">`+arg+`</a>`)
+			links = append(links, `<a href="`+arg+`">`+arg+`</a>`)
 		}
 
 		return `<div class="note">Other Uses: ` + strings.Join(links, ", ") + `</div>`
