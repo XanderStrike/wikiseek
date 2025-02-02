@@ -350,8 +350,8 @@ func handleUSDTemplate(lines []string) string {
     if len(lines) == 0 {
         return ""
     }
-    // Extract amount from {{USD|amount|...}}
-    usdTemplate := regexp.MustCompile(`\{\{USD\|(\d+)(?:\|[^}]*)?}}`)
+    // Make regex case insensitive with (?i)
+    usdTemplate := regexp.MustCompile(`(?i)\{\{USD\|(\d+)(?:\|[^}]*)?}}`)
     matches := usdTemplate.FindStringSubmatch(lines[0])
     if len(matches) > 1 {
         return "$" + matches[1]
@@ -363,7 +363,8 @@ func handleOtherUsesTemplate(lines []string) string {
     if len(lines) == 0 {
         return ""
     }
-    otherUsesRegex := regexp.MustCompile(`\{\{Other uses\|([^|}]+)(?:\|([^}]+))?}}`)
+    // Make regex case insensitive with (?i)
+    otherUsesRegex := regexp.MustCompile(`(?i)\{\{Other uses\|([^|}]+)(?:\|([^}]+))?}}`)
     matches := otherUsesRegex.FindStringSubmatch(lines[0])
     if len(matches) < 2 {
         return lines[0]
@@ -384,7 +385,8 @@ func handleShortDescriptionTemplate(lines []string) string {
     if len(lines) == 0 {
         return ""
     }
-    shortDescRegex := regexp.MustCompile(`\{\{Short description\|([^}]+)}}`)
+    // Make regex case insensitive with (?i)
+    shortDescRegex := regexp.MustCompile(`(?i)\{\{Short description\|([^}]+)}}`)
     matches := shortDescRegex.FindStringSubmatch(lines[0])
     if len(matches) > 1 {
         return fmt.Sprintf(`<em class="short-description">%s</em>`, matches[1])
@@ -396,7 +398,8 @@ func handleMainTemplate(lines []string) string {
     if len(lines) == 0 {
         return ""
     }
-    mainRegex := regexp.MustCompile(`\{\{Main\|([^}]+)}}`)
+    // Make regex case insensitive with (?i)
+    mainRegex := regexp.MustCompile(`(?i)\{\{Main\|([^}]+)}}`)
     matches := mainRegex.FindStringSubmatch(lines[0])
     if len(matches) > 1 {
         return fmt.Sprintf(`<div class="note">Main article: <a href="%s">%s</a></div>`, matches[1], matches[1])
@@ -408,7 +411,8 @@ func handleSeeAlsoTemplate(lines []string) string {
     if len(lines) == 0 {
         return ""
     }
-    seeAlsoRegex := regexp.MustCompile(`\{\{See also\|([^}]+)}}`)
+    // Make regex case insensitive with (?i)
+    seeAlsoRegex := regexp.MustCompile(`(?i)\{\{See also\|([^}]+)}}`)
     matches := seeAlsoRegex.FindStringSubmatch(lines[0])
     if len(matches) > 1 {
         return fmt.Sprintf(`<div class="note">See also: <a href="%s">%s</a></div>`, matches[1], matches[1])
@@ -420,7 +424,8 @@ func handleLangTemplate(lines []string) string {
     if len(lines) == 0 {
         return ""
     }
-    langRegex := regexp.MustCompile(`\{\{Lang[x]?\|([^|]+)\|(?:link=no\|)?([^}]+)}}`)
+    // Make regex case insensitive with (?i)
+    langRegex := regexp.MustCompile(`(?i)\{\{Lang[x]?\|([^|]+)\|(?:link=no\|)?([^}]+)}}`)
     matches := langRegex.FindStringSubmatch(lines[0])
     if len(matches) > 2 {
         return fmt.Sprintf(`%s: <em>%s</em>`, matches[1], matches[2])
