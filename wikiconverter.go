@@ -51,28 +51,34 @@ func ConvertWikiTextToHTML(content string) string {
 		if strings.HasPrefix(line, "{{") {
 			var templateLines []string
 			templateLines = append(templateLines, line)
-			templateOpenCount := strings.Count(line, "{{") - strings.Count(line, "}}")
-
-			for templateOpenCount > 0 && i+1 < len(lines) {
+			templateOpenCount := strings.Count(line, "{{")
+			templateCloseCount := strings.Count(line, "}}")
+			
+			// Keep reading lines until we have matching {{ and }}
+			for templateOpenCount > templateCloseCount && i+1 < len(lines) {
 				i++
 				line = lines[i]
 				templateLines = append(templateLines, line)
-				templateOpenCount += strings.Count(line, "{{") - strings.Count(line, "}}")
+				templateOpenCount += strings.Count(line, "{{")
+				templateCloseCount += strings.Count(line, "}}")
 			}
 
+			// Get the template name from the first line
 			templateName := getTemplateName(templateLines[0])
-			if handler, exists := templateHandlers[templateName]; exists {
+			if handler, exists := templateHandlers[strings.ToLower(templateName)]; exists {
 				outputLines = append(outputLines, handler(templateLines))
-			} else {
-				// Handle unknown templates
-				for _, tline := range templateLines {
-					parsedLine := removeTemplates(tline)
-					parsedLine = parseHeader(parsedLine)
-					parsedLine = parseLinks(parsedLine)
-					parsedLine = wrapInParagraph(parsedLine)
-					outputLines = append(outputLines, parsedLine)
-				}
+				continue
 			}
+
+			// If no handler found, process each line individually
+			for _, tline := range templateLines {
+				parsedLine := removeTemplates(tline)
+				parsedLine = parseHeader(parsedLine)
+				parsedLine = parseLinks(parsedLine)
+				parsedLine = wrapInParagraph(parsedLine)
+				outputLines = append(outputLines, parsedLine)
+			}
+			continue
 		} else {
 			if strings.HasPrefix(strings.TrimSpace(line), "*") || strings.HasPrefix(strings.TrimSpace(line), "#") {
 				listContent, processedLines := parseList(lines[i:])
