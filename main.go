@@ -407,7 +407,6 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 				htmlContent = stripImgDimensions(htmlContent)
 				htmlContent = lowercaseAnchors(htmlContent)
 				data.Content = template.HTML(htmlContent)
-			}
 		}
 	}
 
