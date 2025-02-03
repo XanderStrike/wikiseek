@@ -78,6 +78,34 @@ func init() {
 		return ""
 	})
 
+	// Cite web template handler
+	RegisterTemplateHandler("cite web", func(args []string) string {
+		if len(args) == 0 {
+			return "*"
+		}
+
+		// Build table rows from key=value pairs
+		var rows []string
+		for _, arg := range args {
+			parts := strings.SplitN(arg, "=", 2)
+			if len(parts) == 2 {
+				key := strings.TrimSpace(parts[0])
+				value := strings.TrimSpace(parts[1])
+				rows = append(rows, "<tr><td>"+key+"</td><td>"+value+"</td></tr>")
+			}
+		}
+
+		if len(rows) == 0 {
+			return "*"
+		}
+
+		table := `<span class="citation-marker" onmouseover="showCitation(event, this)" onmouseout="hideCitation(this)">*<div class="citation-table"><table>` + 
+			strings.Join(rows, "") + 
+			`</table></div></span>`
+
+		return table
+	})
+
 	// Nowrap template handler
 	RegisterTemplateHandler("nowrap", func(args []string) string {
 		if len(args) > 0 {
