@@ -87,21 +87,14 @@ func init() {
 	})
 
 	// Templates to completely ignore/skip
-	RegisterTemplateHandler("redirect", func(args []string) string {
-		return ""
-	})
-	RegisterTemplateHandler("good page", func(args []string) string {
-		return ""
-	})
-	RegisterTemplateHandler("pp-blp", func(args []string) string {
-		return ""
-	})
-	RegisterTemplateHandler("use mdy dates", func(args []string) string {
-		return ""
-	})
-	RegisterTemplateHandler("use american english", func(args []string) string {
-		return ""
-	})
+	skip := func(args []string) string { return "" }
+	RegisterTemplateHandler("redirect", skip)
+	RegisterTemplateHandler("good page", skip)
+	RegisterTemplateHandler("pp-blp", skip)
+	RegisterTemplateHandler("use mdy dates", skip)
+	RegisterTemplateHandler("use american english", skip)
+	RegisterTemplateHandler("multiple issues", skip)
+	RegisterTemplateHandler("cleanup rewrite", skip)
 
 	// Cite web template handler
 	// Generic citation handler function
@@ -141,6 +134,7 @@ func init() {
 	}
 
 	// Register handlers for all citation types
+	RegisterTemplateHandler("citation", citationHandler("general"))
 	RegisterTemplateHandler("cite web", citationHandler("web"))
 	RegisterTemplateHandler("cite book", citationHandler("book"))
 	RegisterTemplateHandler("cite news", citationHandler("news"))
