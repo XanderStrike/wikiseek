@@ -78,6 +78,14 @@ func init() {
 		return `<div class="note">Main article: ` + strings.Join(links, ", ") + `</div>`
 	})
 
+	// For template handler
+	RegisterTemplateHandler("for", func(args []string) string {
+		if len(args) < 2 {
+			return ""
+		}
+		return `<div class="note">For ` + args[0] + `, see <a href="` + args[1] + `">` + args[1] + `</a></div>`
+	})
+
 	// Templates to completely ignore/skip
 	RegisterTemplateHandler("redirect", func(args []string) string {
 		return ""
