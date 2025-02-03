@@ -11,6 +11,9 @@ type TemplateHandler func([]string) string
 var (
 	templateHandlers = make(map[string]TemplateHandler)
 
+	// Matches header patterns like === Header === 
+	headerPattern = regexp.MustCompile(`(?m)^(={1,6})\s*(.+?)\s*\1$`)
+
 	// Matches {{template}} or {{template|arg1|arg2}}
 	templatePattern = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
 
@@ -155,7 +158,18 @@ var linkPattern = regexp.MustCompile(`\[\[([^\[\]]+?)(?:\|([^\[\]]+?))?\]\]`)
 
 // ConvertWikiTextToHTML converts wikitext content to HTML
 func ConvertWikiTextToHTML(content string) string {
-	// First process all links
+	// First process all headers
+	content = headerPattern.ReplaceAllStringFunc(content, func(match string) string {
+		parts := headerPattern.FindStringSubmatch(match)
+		if len(parts) < 3 {
+			return match
+		}
+		level := len(parts[1]) // Number of = signs
+		text := parts[2]
+		return "<h" + string(rune('0'+level)) + ">" + text + "</h" + string(rune('0'+level)) + ">"
+	})
+
+	// Then process all links
 	content = linkPattern.ReplaceAllStringFunc(content, func(match string) string {
 		parts := linkPattern.FindStringSubmatch(match)
 		if len(parts) < 2 {
