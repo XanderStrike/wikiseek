@@ -12,7 +12,7 @@ var (
 	templateHandlers = make(map[string]TemplateHandler)
 
 	// Matches header patterns like === Header === 
-	headerPattern = regexp.MustCompile(`(?m)^(={1,6})\s*(.+?)\s*\1$`)
+	headerPattern = regexp.MustCompile(`(?m)^(={1,6})\s*(.+?)\s*$1$`)
 
 	// Matches {{template}} or {{template|arg1|arg2}}
 	templatePattern = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
