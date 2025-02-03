@@ -168,6 +168,16 @@ func init() {
 		return `<ul class="plainlist">` + strings.Join(items, "\n") + `</ul>`
 	})
 
+	// Language template handler
+	RegisterTemplateHandler("lang", func(args []string) string {
+		if len(args) < 2 {
+			return ""
+		}
+		lang := args[0]
+		text := args[1]
+		return `<span title="` + lang + ` language text"><em>` + text + `</em></span>`
+	})
+
 }
 
 // Matches [[link]] or [[link|text]]
