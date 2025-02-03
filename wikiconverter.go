@@ -79,7 +79,8 @@ func init() {
 	})
 
 	// Cite web template handler
-	RegisterTemplateHandler("cite web", func(args []string) string {
+	// Generic citation handler function
+	citationHandler := func(args []string) string {
 		if len(args) == 0 {
 			return "*"
 		}
@@ -109,7 +110,12 @@ func init() {
 			`</table></div></span>`
 
 		return table
-	})
+	}
+
+	// Register handlers for all citation types
+	RegisterTemplateHandler("cite web", citationHandler)
+	RegisterTemplateHandler("cite book", citationHandler)
+	RegisterTemplateHandler("cite news", citationHandler)
 
 	// Nowrap template handler
 	RegisterTemplateHandler("nowrap", func(args []string) string {
