@@ -80,10 +80,11 @@ func init() {
 
 	// Cite web template handler
 	// Generic citation handler function
-	citationHandler := func(args []string) string {
-		if len(args) == 0 {
-			return "*"
-		}
+	citationHandler := func(citeType string) TemplateHandler {
+		return func(args []string) string {
+			if len(args) == 0 {
+				return "*"
+			}
 
 		// Build table rows from key=value pairs
 		var rows []string
@@ -106,6 +107,7 @@ func init() {
 		}
 
 		table := `<span class="citation-marker">*<div class="citation-table"><table>` +
+			`<caption>Citation: ` + citeType + `</caption>` +
 			strings.Join(rows, "") +
 			`</table></div></span>`
 
@@ -113,9 +115,9 @@ func init() {
 	}
 
 	// Register handlers for all citation types
-	RegisterTemplateHandler("cite web", citationHandler)
-	RegisterTemplateHandler("cite book", citationHandler)
-	RegisterTemplateHandler("cite news", citationHandler)
+	RegisterTemplateHandler("cite web", citationHandler("web"))
+	RegisterTemplateHandler("cite book", citationHandler("book")) 
+	RegisterTemplateHandler("cite news", citationHandler("news"))
 
 	// Nowrap template handler
 	RegisterTemplateHandler("nowrap", func(args []string) string {
