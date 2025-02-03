@@ -86,37 +86,38 @@ func init() {
 				return "*"
 			}
 
-		// Build table rows from key=value pairs
-		var rows []string
-		for _, arg := range args {
-			parts := strings.SplitN(arg, "=", 2)
-			if len(parts) == 2 {
-				key := strings.TrimSpace(parts[0])
-				value := strings.TrimSpace(parts[1])
-				// Truncate long values
-				displayValue := value
-				if len(value) > 40 {
-					displayValue = value[:37] + "..."
+			// Build table rows from key=value pairs
+			var rows []string
+			for _, arg := range args {
+				parts := strings.SplitN(arg, "=", 2)
+				if len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					value := strings.TrimSpace(parts[1])
+					// Truncate long values
+					displayValue := value
+					if len(value) > 40 {
+						displayValue = value[:37] + "..."
+					}
+					rows = append(rows, "<tr><td>"+key+"</td><td title=\""+value+"\">"+displayValue+"</td></tr>")
 				}
-				rows = append(rows, "<tr><td>"+key+"</td><td title=\""+value+"\">"+displayValue+"</td></tr>")
 			}
+
+			if len(rows) == 0 {
+				return "*"
+			}
+
+			table := `<span class="citation-marker">*<div class="citation-table"><table>` +
+				`<caption>Citation: ` + citeType + `</caption>` +
+				strings.Join(rows, "") +
+				`</table></div></span>`
+
+			return table
 		}
-
-		if len(rows) == 0 {
-			return "*"
-		}
-
-		table := `<span class="citation-marker">*<div class="citation-table"><table>` +
-			`<caption>Citation: ` + citeType + `</caption>` +
-			strings.Join(rows, "") +
-			`</table></div></span>`
-
-		return table
 	}
 
 	// Register handlers for all citation types
 	RegisterTemplateHandler("cite web", citationHandler("web"))
-	RegisterTemplateHandler("cite book", citationHandler("book")) 
+	RegisterTemplateHandler("cite book", citationHandler("book"))
 	RegisterTemplateHandler("cite news", citationHandler("news"))
 
 	// Nowrap template handler
