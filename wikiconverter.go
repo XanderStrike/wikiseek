@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // TemplateHandler processes a template and returns HTML
@@ -39,7 +42,7 @@ func init() {
 	// See also template handler
 	RegisterTemplateHandler("see also", func(args []string) string {
 		if len(args) == 0 {
-			return `<div class="note">See Also</div>`
+			return ""
 		}
 
 		var links []string
@@ -53,7 +56,7 @@ func init() {
 	// Other uses template handler
 	RegisterTemplateHandler("other uses", func(args []string) string {
 		if len(args) == 0 {
-			return `<div class="note">Other Uses</div>`
+			return ""
 		}
 
 		var links []string
@@ -67,7 +70,7 @@ func init() {
 	// Other uses template handler
 	RegisterTemplateHandler("main", func(args []string) string {
 		if len(args) == 0 {
-			return `<div class="note">Main article</div>`
+			return ""
 		}
 
 		var links []string
@@ -77,6 +80,52 @@ func init() {
 
 		return `<div class="note">Main article: ` + strings.Join(links, ", ") + `</div>`
 	})
+
+	RegisterTemplateHandler("further", func(args []string) string {
+		if len(args) == 0 {
+			return ""
+		}
+
+		var links []string
+		for _, arg := range args {
+			links = append(links, `<a href="`+arg+`">`+arg+`</a>`)
+		}
+
+		return `<div class="note">Futher information: ` + strings.Join(links, ", ") + `</div>`
+	})
+
+	// Generic infobox handler function
+	infoboxHandler := func(caption string) TemplateHandler {
+		return func(args []string) string {
+			if len(args) == 0 {
+				return ""
+			}
+
+			// Build table rows from key=value pairs
+			var rows []string
+			for _, arg := range args {
+				parts := strings.SplitN(arg, "=", 2)
+				if len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					value := strings.TrimSpace(parts[1])
+					rows = append(rows, "<tr><th>"+key+"</th><td>"+value+"</td></tr>")
+				}
+			}
+
+			if len(rows) == 0 {
+				return ""
+			}
+
+			return `<table class="infobox">` +
+				`<caption>` + caption + `</caption>` +
+				strings.Join(rows, "") +
+				`</table>`
+		}
+	}
+
+	// Register handlers for different infobox types
+	RegisterTemplateHandler("infobox television", infoboxHandler("Television Show Information"))
+	RegisterTemplateHandler("infobox person", infoboxHandler("Personal Information"))
 
 	// For template handler
 	RegisterTemplateHandler("for", func(args []string) string {
@@ -91,11 +140,16 @@ func init() {
 	RegisterTemplateHandler("redirect", skip)
 	RegisterTemplateHandler("good page", skip)
 	RegisterTemplateHandler("pp-blp", skip)
+	RegisterTemplateHandler("pp-move-indef", skip)
 	RegisterTemplateHandler("use mdy dates", skip)
+	RegisterTemplateHandler("use dmy dates", skip)
 	RegisterTemplateHandler("use american english", skip)
 	RegisterTemplateHandler("multiple issues", skip)
 	RegisterTemplateHandler("cleanup rewrite", skip)
 	RegisterTemplateHandler("citation needed", skip)
+	RegisterTemplateHandler("more footnotes", skip)
+	RegisterTemplateHandler("reflist", skip)
+	RegisterTemplateHandler("update", skip)
 
 	// Cite web template handler
 	// Generic citation handler function
@@ -179,6 +233,63 @@ func init() {
 		return `<span title="` + lang + ` language text"><em>` + text + `</em></span>`
 	})
 
+	// Non-breaking space template handler
+	RegisterTemplateHandler("nbsp", func(args []string) string {
+		return "&nbsp;"
+	})
+
+	// Start date template handler
+	RegisterTemplateHandler("start date", func(args []string) string {
+		if len(args) < 4 {
+			return ""
+		}
+		year := args[0]
+		month := fmt.Sprintf("%02d", atoi(args[1]))
+		day := fmt.Sprintf("%02d", atoi(args[2]))
+		return fmt.Sprintf("%s-%s-%s", year, month, day)
+	})
+
+	// Marriage template handler
+	RegisterTemplateHandler("marriage", func(args []string) string {
+		if len(args) < 3 {
+			return ""
+		}
+		name := args[0]
+		startYear := args[1]
+		endDate := args[2]
+		return fmt.Sprintf("%s (m. %s - %s)", name, startYear, endDate)
+	})
+
+	// Birth date and age template handler
+	RegisterTemplateHandler("birth date and age", func(args []string) string {
+		if len(args) < 3 {
+			return ""
+		}
+		year := atoi(args[0])
+		month := atoi(args[1])
+		day := atoi(args[2])
+
+		birthDate := fmt.Sprintf("%d-%02d-%02d", year, month, day)
+
+		// Calculate age
+		now := time.Now()
+		age := now.Year() - year
+		// Adjust age if birthday hasn't occurred this year
+		if now.Month() < time.Month(month) || (now.Month() == time.Month(month) && now.Day() < day) {
+			age--
+		}
+
+		return fmt.Sprintf("%s (age %d)", birthDate, age)
+	})
+
+}
+
+func atoi(s string) int {
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return n
 }
 
 // Matches [[link]] or [[link|text]]
