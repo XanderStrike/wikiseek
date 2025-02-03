@@ -409,7 +409,7 @@ blockquote p {
     z-index: 1000;
     font-size: 0.9em;
     max-width: 400px;
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 .citation-table table {

@@ -93,8 +93,8 @@ func init() {
 				value := strings.TrimSpace(parts[1])
 				// Truncate long values
 				displayValue := value
-				if len(value) > 50 {
-					displayValue = value[:47] + "..."
+				if len(value) > 40 {
+					displayValue = value[:37] + "..."
 				}
 				rows = append(rows, "<tr><td>"+key+"</td><td title=\""+value+"\">"+displayValue+"</td></tr>")
 			}
@@ -104,8 +104,8 @@ func init() {
 			return "*"
 		}
 
-		table := `<span class="citation-marker">*<div class="citation-table"><table>` + 
-			strings.Join(rows, "") + 
+		table := `<span class="citation-marker">*<div class="citation-table"><table>` +
+			strings.Join(rows, "") +
 			`</table></div></span>`
 
 		return table

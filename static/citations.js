@@ -1,8 +1,64 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Add event listeners to all citation markers
+    let pinnedCitation = null;
+
+    // Handle clicks on citation markers
+    document.addEventListener('click', function(event) {
+        const marker = event.target.closest('.citation-marker');
+        
+        // If clicking outside any citation marker, unpin current citation
+        if (!marker) {
+            if (pinnedCitation) {
+                pinnedCitation.classList.remove('pinned');
+                const table = pinnedCitation.querySelector('.citation-table');
+                if (table) {
+                    table.style.display = 'none';
+                }
+                pinnedCitation = null;
+            }
+            return;
+        }
+
+        // Handle click on citation marker
+        if (marker) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // If clicking the currently pinned citation, unpin it
+            if (pinnedCitation === marker) {
+                marker.classList.remove('pinned');
+                const table = marker.querySelector('.citation-table');
+                if (table) {
+                    table.style.display = 'none';
+                }
+                pinnedCitation = null;
+                return;
+            }
+
+            // Unpin previous citation if exists
+            if (pinnedCitation) {
+                pinnedCitation.classList.remove('pinned');
+                const oldTable = pinnedCitation.querySelector('.citation-table');
+                if (oldTable) {
+                    oldTable.style.display = 'none';
+                }
+            }
+
+            // Pin new citation
+            marker.classList.add('pinned');
+            const table = marker.querySelector('.citation-table');
+            if (table) {
+                table.style.display = 'block';
+                updatePosition(event, table);
+            }
+            pinnedCitation = marker;
+        }
+    });
+
+    // Show/hide on hover only when not pinned
     document.addEventListener('mouseover', function(event) {
-        if (event.target.classList.contains('citation-marker')) {
-            const table = event.target.querySelector('.citation-table');
+        const marker = event.target.closest('.citation-marker');
+        if (marker && !marker.classList.contains('pinned')) {
+            const table = marker.querySelector('.citation-table');
             if (table) {
                 table.style.display = 'block';
                 updatePosition(event, table);
@@ -11,8 +67,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.addEventListener('mouseout', function(event) {
-        if (event.target.classList.contains('citation-marker')) {
-            const table = event.target.querySelector('.citation-table');
+        const marker = event.target.closest('.citation-marker');
+        if (marker && !marker.classList.contains('pinned')) {
+            const table = marker.querySelector('.citation-table');
             if (table) {
                 table.style.display = 'none';
             }
@@ -20,9 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.addEventListener('mousemove', function(event) {
-        const activeMarker = event.target.closest('.citation-marker');
-        if (activeMarker) {
-            const table = activeMarker.querySelector('.citation-table');
+        const marker = event.target.closest('.citation-marker');
+        if (marker && !marker.classList.contains('pinned')) {
+            const table = marker.querySelector('.citation-table');
             if (table && table.style.display === 'block') {
                 updatePosition(event, table);
             }
