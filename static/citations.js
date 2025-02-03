@@ -36,20 +36,22 @@ function updatePosition(event, table) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    // Calculate position
-    let left = event.pageX + padding;
-    let top = event.pageY + padding;
+    // Calculate position relative to viewport
+    let left = event.clientX + padding;
+    let top = event.clientY + padding;
     
     // Adjust if would overflow right edge
     if (left + rect.width > viewportWidth) {
-        left = event.pageX - rect.width - padding;
+        left = event.clientX - rect.width - padding;
     }
     
     // Adjust if would overflow bottom edge
     if (top + rect.height > viewportHeight) {
-        top = event.pageY - rect.height - padding;
+        top = event.clientY - rect.height - padding;
     }
     
+    // Use fixed positioning with viewport coordinates
+    table.style.position = 'fixed';
     table.style.left = left + 'px';
     table.style.top = top + 'px';
 }

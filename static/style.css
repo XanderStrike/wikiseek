@@ -400,7 +400,7 @@ blockquote p {
 
 .citation-table {
     display: none;
-    position: fixed;
+    position: absolute;
     background: white;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -409,6 +409,7 @@ blockquote p {
     z-index: 1000;
     font-size: 0.9em;
     max-width: 400px;
+    pointer-events: none;
 }
 
 .citation-table table {
