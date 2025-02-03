@@ -11,8 +11,8 @@ type TemplateHandler func([]string) string
 var (
 	templateHandlers = make(map[string]TemplateHandler)
 
-	// Matches header patterns like === Header === 
-	headerPattern = regexp.MustCompile(`(?m)^(={1,6})\s*(.+?)\s*$1$`)
+	// Matches header patterns like === Header === with symmetrical equals signs
+	headerPattern = regexp.MustCompile(`(?m)^(={1,6})\s*(.+?)\s*={1,6}$`)
 
 	// Matches {{template}} or {{template|arg1|arg2}}
 	templatePattern = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
@@ -62,6 +62,20 @@ func init() {
 		}
 
 		return `<div class="note">Other Uses: ` + strings.Join(links, ", ") + `</div>`
+	})
+
+	// Other uses template handler
+	RegisterTemplateHandler("main", func(args []string) string {
+		if len(args) == 0 {
+			return `<div class="note">Main article</div>`
+		}
+
+		var links []string
+		for _, arg := range args {
+			links = append(links, `<a href="`+arg+`">`+arg+`</a>`)
+		}
+
+		return `<div class="note">Main article: ` + strings.Join(links, ", ") + `</div>`
 	})
 
 	// Templates to completely ignore/skip
@@ -122,6 +136,7 @@ func init() {
 	RegisterTemplateHandler("cite web", citationHandler("web"))
 	RegisterTemplateHandler("cite book", citationHandler("book"))
 	RegisterTemplateHandler("cite news", citationHandler("news"))
+	RegisterTemplateHandler("cite journal", citationHandler("journal"))
 
 	// Nowrap template handler
 	RegisterTemplateHandler("nowrap", func(args []string) string {
