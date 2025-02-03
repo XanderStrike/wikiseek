@@ -95,6 +95,7 @@ func init() {
 	RegisterTemplateHandler("use american english", skip)
 	RegisterTemplateHandler("multiple issues", skip)
 	RegisterTemplateHandler("cleanup rewrite", skip)
+	RegisterTemplateHandler("citation needed", skip)
 
 	// Cite web template handler
 	// Generic citation handler function
@@ -209,7 +210,7 @@ func ConvertWikiTextToHTML(content string) string {
 		// URL encode the link target
 		linkTarget = strings.ReplaceAll(linkTarget, "/wiki/", "")
 
-		linkText := linkTarget
+		linkText := parts[1]
 		if len(parts) > 2 && parts[2] != "" {
 			linkText = strings.TrimSpace(parts[2])
 		}
