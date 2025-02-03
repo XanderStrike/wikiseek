@@ -91,7 +91,12 @@ func init() {
 			if len(parts) == 2 {
 				key := strings.TrimSpace(parts[0])
 				value := strings.TrimSpace(parts[1])
-				rows = append(rows, "<tr><td>"+key+"</td><td>"+value+"</td></tr>")
+				// Truncate long values
+				displayValue := value
+				if len(value) > 50 {
+					displayValue = value[:47] + "..."
+				}
+				rows = append(rows, "<tr><td>"+key+"</td><td title=\""+value+"\">"+displayValue+"</td></tr>")
 			}
 		}
 
