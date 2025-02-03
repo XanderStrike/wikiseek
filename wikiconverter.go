@@ -99,7 +99,7 @@ func init() {
 			return "*"
 		}
 
-		table := `<span class="citation-marker" onmouseover="showCitation(event, this)" onmouseout="hideCitation(this)">*<div class="citation-table"><table>` + 
+		table := `<span class="citation-marker">*<div class="citation-table"><table>` + 
 			strings.Join(rows, "") + 
 			`</table></div></span>`
 
