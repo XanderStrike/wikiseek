@@ -457,7 +457,9 @@ func parseTemplateArguments(argString string) []string {
 		case '{':
 			braceLevel++
 		case '}':
-			braceLevel--
+			if braceLevel > 0 {
+				braceLevel--
+			}
 		case '|':
 			if braceLevel == 0 {
 				args = append(args, strings.TrimSpace(currentArg.String()))
