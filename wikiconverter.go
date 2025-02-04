@@ -107,34 +107,6 @@ func init() {
 		return `<div class="note">Futher information: ` + strings.Join(links, ", ") + `</div>`
 	})
 
-	// Generic infobox handler function
-	infoboxHandler := func(caption string) TemplateHandler {
-		return func(args []string) string {
-			if len(args) == 0 {
-				return ""
-			}
-
-			// Build table rows from key=value pairs
-			var rows []string
-			for _, arg := range args {
-				parts := strings.SplitN(arg, "=", 2)
-				if len(parts) == 2 {
-					key := strings.TrimSpace(parts[0])
-					value := strings.TrimSpace(parts[1])
-					rows = append(rows, "<tr><th>"+key+"</th><td>"+value+"</td></tr>")
-				}
-			}
-
-			if len(rows) == 0 {
-				return ""
-			}
-
-			return `<table class="infobox">` +
-				`<caption>` + caption + `</caption>` +
-				strings.Join(rows, "") +
-				`</table>`
-		}
-	}
 
 	// Generic infobox handler for any infobox type
 	RegisterTemplateHandler(`infobox\b.*`, func(args []string) string {
@@ -200,38 +172,43 @@ func init() {
 
 	// Generic citation handler for any citation type
 	citationHandler := func(args []string) string {
-		return func(args []string) string {
-			if len(args) == 0 {
-				return "*"
-			}
-
-			// Build table rows from key=value pairs
-			var rows []string
-			for _, arg := range args {
-				parts := strings.SplitN(arg, "=", 2)
-				if len(parts) == 2 {
-					key := strings.TrimSpace(parts[0])
-					value := strings.TrimSpace(parts[1])
-					// Truncate long values
-					displayValue := value
-					if len(value) > 40 {
-						displayValue = value[:37] + "..."
-					}
-					rows = append(rows, "<tr><td>"+key+"</td><td title=\""+value+"\">"+displayValue+"</td></tr>")
-				}
-			}
-
-			if len(rows) == 0 {
-				return "*"
-			}
-
-			table := `<span class="citation-marker">*<div class="citation-table"><table>` +
-				`<caption>Citation: ` + citeType + `</caption>` +
-				strings.Join(rows, "") +
-				`</table></div></span>`
-
-			return table
+		if len(args) == 0 {
+			return "*"
 		}
+
+		// Extract citation type from template name
+		citationType := "general"
+		if len(args) > 0 {
+			typeParts := strings.SplitN(args[0], " ", 2)
+			if len(typeParts) > 1 {
+				citationType = strings.Title(typeParts[1])
+			}
+		}
+
+		// Build table rows from key=value pairs
+		var rows []string
+		for _, arg := range args[1:] {  // Skip first arg which is template name
+			parts := strings.SplitN(arg, "=", 2)
+			if len(parts) == 2 {
+				key := strings.TrimSpace(parts[0])
+				value := strings.TrimSpace(parts[1])
+				// Truncate long values
+				displayValue := value
+				if len(value) > 40 {
+					displayValue = value[:37] + "..."
+				}
+				rows = append(rows, "<tr><td>"+key+"</td><td title=\""+value+"\">"+displayValue+"</td></tr>")
+			}
+		}
+
+		if len(rows) == 0 {
+			return "*"
+		}
+
+		return `<span class="citation-marker">*<div class="citation-table"><table>` +
+			`<caption>Citation: ` + citationType + `</caption>` +
+			strings.Join(rows, "") +
+			`</table></div></span>`
 	}
 
 	// Register handler for all citation types using regex pattern
