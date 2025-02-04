@@ -330,12 +330,55 @@ func ConvertWikiTextToHTML(content string) string {
 		return `<a href="/wiki/` + linkTarget + `">` + linkText + `</a>`
 	})
 
-	// Then process all template matches
-	matches := templatePattern.FindAllStringSubmatch(content, -1)
+	// Process templates with brace counting to handle nesting
+	var templates []struct {
+		fullMatch    string
+		innerContent string
+	}
+	
+	// Find all templates by counting braces
+	var buf strings.Builder
+	var braceLevel int
+	inTemplate := false
+	for _, r := range content {
+		switch {
+		case r == '{' && !inTemplate:
+			buf.WriteRune(r)
+			braceLevel++
+			if braceLevel == 2 {
+				inTemplate = true
+				buf.Reset()
+				braceLevel = 0
+			}
+		case inTemplate:
+			switch r {
+			case '{':
+				braceLevel++
+			case '}':
+				if braceLevel == 0 {
+					// Found closing brace
+					inTemplate = false
+					templates = append(templates, struct {
+						fullMatch    string
+						innerContent string
+					}{
+						fullMatch:    "{{" + buf.String() + "}}",
+						innerContent: buf.String(),
+					})
+					buf.Reset()
+					continue
+				}
+				braceLevel--
+			}
+			buf.WriteRune(r)
+		}
+	}
 
-	for _, match := range matches {
-		fullMatch := match[0]
-		innerContent := match[1]
+	// Process templates from innermost first (reverse order)
+	for i := len(templates) - 1; i >= 0; i-- {
+		match := templates[i]
+		fullMatch := match.fullMatch
+		innerContent := match.innerContent
 
 		// Parse template name and arguments
 		argsMatch := templateArgsPattern.FindStringSubmatch(innerContent)
