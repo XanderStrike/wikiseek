@@ -16,6 +16,55 @@ type handlerRegistration struct {
 	handler TemplateHandler
 }
 
+// processLists converts wikitext lists to HTML lists
+func processLists(content string) string {
+	lines := strings.Split(content, "\n")
+	var result []string
+	var listStack []string
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "*") || strings.HasPrefix(trimmed, "#") {
+			// Determine list type and depth
+			listType := "ul"
+			if strings.HasPrefix(trimmed, "#") {
+				listType = "ol"
+			}
+			depth := len(trimmed) - len(strings.TrimLeft(trimmed, "*#"))
+
+			// Close lists if needed
+			for len(listStack) > depth {
+				result = append(result, "</"+listStack[len(listStack)-1]+">")
+				listStack = listStack[:len(listStack)-1]
+			}
+
+			// Open new lists if needed
+			for len(listStack) < depth {
+				result = append(result, "<"+listType+">")
+				listStack = append(listStack, listType)
+			}
+
+			// Add list item
+			itemContent := strings.TrimSpace(trimmed[depth:])
+			result = append(result, "<li>"+itemContent+"</li>")
+		} else {
+			// Close all open lists
+			for len(listStack) > 0 {
+				result = append(result, "</"+listStack[len(listStack)-1]+">")
+				listStack = listStack[:len(listStack)-1]
+			}
+			result = append(result, line)
+		}
+	}
+
+	// Close any remaining open lists
+	for len(listStack) > 0 {
+		result = append(result, "</"+listStack[len(listStack)-1]+">")
+		listStack = listStack[:len(listStack)-1]
+	}
+
+	return strings.Join(result, "\n")
+
 var (
 	templateHandlers []handlerRegistration
 
@@ -332,6 +381,9 @@ func ConvertWikiTextToHTML(content string) string {
 	content = regexp.MustCompile(`'''''(.*?)'''''`).ReplaceAllString(content, "<strong><em>$1</em></strong>")
 	content = regexp.MustCompile(`'''(.*?)'''`).ReplaceAllString(content, "<strong>$1</strong>")
 	content = regexp.MustCompile(`''(.*?)''`).ReplaceAllString(content, "<em>$1</em>")
+
+	// Process bulleted and numbered lists
+	content = processLists(content)
 
 	// Process all links
 	content = linkPattern.ReplaceAllStringFunc(content, func(match string) string {
