@@ -136,11 +136,42 @@ func init() {
 		}
 	}
 
-	// Register handlers for different infobox types
-	RegisterTemplateHandler("infobox television", infoboxHandler("Television Show Information"))
-	RegisterTemplateHandler("infobox person", infoboxHandler("Personal Information"))
-	RegisterTemplateHandler("infobox award", infoboxHandler("Award Information"))
-	RegisterTemplateHandler("infobox organization", infoboxHandler("Organization Information"))
+	// Generic infobox handler for any infobox type
+	RegisterTemplateHandler(`infobox\b.*`, func(args []string) string {
+		// Extract infobox type from template name
+		caption := "Information"
+		if len(args) > 0 {
+			// Get the infobox type from the template name
+			typeParts := strings.SplitN(args[0], " ", 2)
+			if len(typeParts) > 1 {
+				caption = strings.Title(typeParts[1]) + " Information"
+			}
+		}
+
+		if len(args) < 1 {
+			return ""
+		}
+
+		// Build table rows from key=value pairs (skip the first arg which is the infobox type)
+		var rows []string
+		for _, arg := range args[1:] {
+			parts := strings.SplitN(arg, "=", 2)
+			if len(parts) == 2 {
+				key := strings.TrimSpace(parts[0])
+				value := strings.TrimSpace(parts[1])
+				rows = append(rows, "<tr><th>"+key+"</th><td>"+value+"</td></tr>")
+			}
+		}
+
+		if len(rows) == 0 {
+			return ""
+		}
+
+		return `<table class="infobox">` +
+			`<caption>` + caption + `</caption>` +
+			strings.Join(rows, "") +
+			`</table>`
+	})
 
 	// For template handler
 	RegisterTemplateHandler("for", func(args []string) string {
@@ -167,9 +198,8 @@ func init() {
 	RegisterTemplateHandler("reflist", skip)
 	RegisterTemplateHandler("update", skip)
 
-	// Cite web template handler
-	// Generic citation handler function
-	citationHandler := func(citeType string) TemplateHandler {
+	// Generic citation handler for any citation type
+	citationHandler := func(args []string) string {
 		return func(args []string) string {
 			if len(args) == 0 {
 				return "*"
