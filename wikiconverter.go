@@ -17,6 +17,9 @@ var (
 	// Matches header patterns like === Header === with symmetrical equals signs
 	headerPattern = regexp.MustCompile(`(?m)^(={1,6})\s*(.+?)\s*={1,6}$`)
 
+	// Matches [[link]] or [[link|text]]
+	linkPattern = regexp.MustCompile(`\[\[([^\[\]]+?)(?:\|([^\[\]]+?))?\]\]`)
+
 	// Matches {{template}} or {{template|arg1|arg2}}
 	templatePattern = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
 
@@ -140,6 +143,7 @@ func init() {
 	RegisterTemplateHandler("redirect", skip)
 	RegisterTemplateHandler("good page", skip)
 	RegisterTemplateHandler("pp-blp", skip)
+	RegisterTemplateHandler("pp-move", skip)
 	RegisterTemplateHandler("pp-move-indef", skip)
 	RegisterTemplateHandler("use mdy dates", skip)
 	RegisterTemplateHandler("use dmy dates", skip)
@@ -292,9 +296,6 @@ func atoi(s string) int {
 	return n
 }
 
-// Matches [[link]] or [[link|text]]
-var linkPattern = regexp.MustCompile(`\[\[([^\[\]]+?)(?:\|([^\[\]]+?))?\]\]`)
-
 // ConvertWikiTextToHTML converts wikitext content to HTML
 func ConvertWikiTextToHTML(content string) string {
 	// First process all headers
@@ -358,8 +359,8 @@ func ConvertWikiTextToHTML(content string) string {
 		handler, exists := templateHandlers[strings.ToLower(templateName)]
 		if !exists {
 			// Default handler for unknown templates
-			handler = func(args []string) string {
-				return `<div style="color:red">No match for "` + templateName + `": ` + fullMatch + `</div>`
+			handler = func(_ []string) string {
+				return `<div style="color:#AAA">No template for "` + templateName + `": ` + fullMatch + `</div>`
 			}
 		}
 
