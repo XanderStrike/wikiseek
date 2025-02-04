@@ -328,7 +328,12 @@ func ConvertWikiTextToHTML(content string) string {
 		return "<h" + string(rune('0'+level)) + ">" + text + "</h" + string(rune('0'+level)) + ">"
 	})
 
-	// Then process all links
+	// Then process bold and italic text
+	content = regexp.MustCompile(`'''''(.*?)'''''`).ReplaceAllString(content, "<strong><em>$1</em></strong>")
+	content = regexp.MustCompile(`'''(.*?)'''`).ReplaceAllString(content, "<strong>$1</strong>")
+	content = regexp.MustCompile(`''(.*?)''`).ReplaceAllString(content, "<em>$1</em>")
+
+	// Process all links
 	content = linkPattern.ReplaceAllStringFunc(content, func(match string) string {
 		parts := linkPattern.FindStringSubmatch(match)
 		if len(parts) < 2 {
