@@ -293,64 +293,6 @@ func findPageByTitle(entries []IndexEntry, title string) *IndexEntry {
 	return nil
 }
 
-func stripImgDimensions(html string) string {
-	// Remove width, height and src attributes from img tags
-	re := regexp.MustCompile(`(<img[^>]+)(width|height|src)="[^"]*"`)
-	return re.ReplaceAllString(html, "$1")
-}
-
-func lowercaseAnchors(html string) string {
-	var result strings.Builder
-	start := 0
-
-	for {
-		// Find next href attribute
-		hrefIndex := strings.Index(html[start:], "href=\"")
-		if hrefIndex == -1 {
-			result.WriteString(html[start:])
-			break
-		}
-		hrefIndex += start
-
-		// Write everything up to the href
-		result.WriteString(html[start : hrefIndex+6])
-
-		// Find the end of the href value
-		endQuote := strings.IndexByte(html[hrefIndex+6:], '"')
-		if endQuote == -1 {
-			result.WriteString(html[hrefIndex+6:])
-			break
-		}
-		endQuote += hrefIndex + 6
-
-		// Process the href value
-		hrefValue := html[hrefIndex+6 : endQuote]
-		// Skip category links entirely
-		if strings.HasPrefix(hrefValue, "Category:") {
-			// Find the closing </a> tag
-			aEnd := strings.Index(html[endQuote:], "</a>")
-			if aEnd == -1 {
-				start = endQuote + 1
-				continue
-			}
-			// Skip past the entire link
-			start = endQuote + aEnd + 4
-			continue
-		}
-
-		// Process non-category links
-		if hashIndex := strings.IndexByte(hrefValue, '#'); hashIndex != -1 {
-			// Lowercase everything after the #
-			hrefValue = hrefValue[:hashIndex+1] + strings.ToLower(hrefValue[hashIndex+1:])
-		}
-		result.WriteString(hrefValue)
-
-		start = endQuote
-	}
-
-	return result.String()
-}
-
 func isRedirect(content string) (string, bool) {
 	// Look for redirect patterns in the HTML using regex
 	re := regexp.MustCompile(`(?i)<li>\s*redirect\s*<a\s+href="([^"]+)"`)
@@ -394,19 +336,17 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 		if err != nil {
 			data.Error = fmt.Sprintf("Error extracting page text: %v", err)
 		} else {
-			htmlContent := ConvertWikiTextToHTML(text)
+			htmlContent := "<pre><code>" + text + "</pre></code>"
 
-				// Check if this is a redirect page
-				if target, isRedirect := isRedirect(htmlContent); isRedirect {
-					fmt.Printf("[%s] 302 Redirect: %s -> %s\n", time.Now().Format("2006-01-02 15:04:05"), r.URL.Path, target)
-					http.Redirect(w, r, "/wiki/"+target, http.StatusFound)
-					return
-				}
+			htmlContent += ConvertWikiTextToHTML(text)
+			// Check if this is a redirect page
+			if target, isRedirect := isRedirect(htmlContent); isRedirect {
+				fmt.Printf("[%s] 302 Redirect: %s -> %s\n", time.Now().Format("2006-01-02 15:04:05"), r.URL.Path, target)
+				http.Redirect(w, r, "/wiki/"+target, http.StatusFound)
+				return
+			}
 
-				// Process the HTML content
-				htmlContent = stripImgDimensions(htmlContent)
-				htmlContent = lowercaseAnchors(htmlContent)
-				data.Content = template.HTML(htmlContent)
+			data.Content = template.HTML(htmlContent)
 		}
 	}
 
