@@ -25,9 +25,6 @@ var (
 	// Matches [[link]] or [[link|text]]
 	linkPattern = regexp.MustCompile(`\[\[([^\[\]]+?)(?:\|([^\[\]]+?))?\]\]`)
 
-	// Matches {{template}} or {{template|arg1|arg2}}
-	templatePattern = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
-
 	// Matches template name and arguments
 	templateArgsPattern = regexp.MustCompile(`(?s)^([^{}|]+)(?:\|(.*))?$`)
 )
@@ -107,7 +104,6 @@ func init() {
 		return `<div class="note">Futher information: ` + strings.Join(links, ", ") + `</div>`
 	})
 
-
 	// Generic infobox handler for any infobox type
 	RegisterTemplateHandler(`infobox\b.*`, func(args []string) string {
 		// Extract infobox type from template name
@@ -157,9 +153,7 @@ func init() {
 	skip := func(args []string) string { return "" }
 	RegisterTemplateHandler("redirect", skip)
 	RegisterTemplateHandler("good page", skip)
-	RegisterTemplateHandler("pp-blp", skip)
-	RegisterTemplateHandler("pp-move", skip)
-	RegisterTemplateHandler("pp-move-indef", skip)
+	RegisterTemplateHandler(`pp\b.*`, skip)
 	RegisterTemplateHandler("use mdy dates", skip)
 	RegisterTemplateHandler("use dmy dates", skip)
 	RegisterTemplateHandler("use american english", skip)
@@ -169,6 +163,7 @@ func init() {
 	RegisterTemplateHandler("more footnotes", skip)
 	RegisterTemplateHandler("reflist", skip)
 	RegisterTemplateHandler("update", skip)
+	RegisterTemplateHandler("!", skip)
 
 	// Generic citation handler for any citation type
 	citationHandler := func(args []string) string {
@@ -187,7 +182,7 @@ func init() {
 
 		// Build table rows from key=value pairs
 		var rows []string
-		for _, arg := range args[1:] {  // Skip first arg which is template name
+		for _, arg := range args[1:] { // Skip first arg which is template name
 			parts := strings.SplitN(arg, "=", 2)
 			if len(parts) == 2 {
 				key := strings.TrimSpace(parts[0])
@@ -435,7 +430,7 @@ func ConvertWikiTextToHTML(content string) string {
 		if handler == nil {
 			// Default handler for unknown templates
 			handler = func(_ []string) string {
-				return `<div style="color:#AAA">No template for "` + templateName + `": ` + fullMatch + `</div>`
+				return `<span style="color:#AAA">No template for "` + templateName + `": ` + fullMatch + `</span>`
 			}
 		}
 
