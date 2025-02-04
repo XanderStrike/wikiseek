@@ -11,8 +11,13 @@ import (
 // TemplateHandler processes a template and returns HTML
 type TemplateHandler func([]string) string
 
+type handlerRegistration struct {
+	pattern *regexp.Regexp
+	handler TemplateHandler
+}
+
 var (
-	templateHandlers = make(map[string]TemplateHandler)
+	templateHandlers []handlerRegistration
 
 	// Matches header patterns like === Header === with symmetrical equals signs
 	headerPattern = regexp.MustCompile(`(?m)^(={1,6})\s*(.+?)\s*={1,6}$`)
@@ -27,9 +32,14 @@ var (
 	templateArgsPattern = regexp.MustCompile(`(?s)^([^{}|]+)(?:\|(.*))?$`)
 )
 
-// RegisterTemplateHandler registers a handler for a specific template name
-func RegisterTemplateHandler(name string, handler TemplateHandler) {
-	templateHandlers[name] = handler
+// RegisterTemplateHandler registers a handler for a template name pattern (supports regex)
+func RegisterTemplateHandler(pattern string, handler TemplateHandler) {
+	// Compile pattern to regex, adding start/end anchors and case insensitivity
+	regexPattern := regexp.MustCompile(`(?i)^` + pattern + `$`)
+	templateHandlers = append(templateHandlers, handlerRegistration{
+		pattern: regexPattern,
+		handler: handler,
+	})
 }
 
 // Register default template handlers
@@ -194,12 +204,9 @@ func init() {
 		}
 	}
 
-	// Register handlers for all citation types
-	RegisterTemplateHandler("citation", citationHandler("general"))
-	RegisterTemplateHandler("cite web", citationHandler("web"))
-	RegisterTemplateHandler("cite book", citationHandler("book"))
-	RegisterTemplateHandler("cite news", citationHandler("news"))
-	RegisterTemplateHandler("cite journal", citationHandler("journal"))
+	// Register handler for all citation types using regex pattern
+	RegisterTemplateHandler(`cite\b.*`, citationHandler)
+	RegisterTemplateHandler(`citation`, citationHandler)
 
 	// Nowrap template handler
 	RegisterTemplateHandler("nowrap", func(args []string) string {
@@ -409,8 +416,16 @@ func ConvertWikiTextToHTML(content string) string {
 		}
 
 		// Get handler or use default
-		handler, exists := templateHandlers[strings.ToLower(templateName)]
-		if !exists {
+		// Find first matching pattern
+		var handler TemplateHandler
+		for _, registration := range templateHandlers {
+			if registration.pattern.MatchString(templateName) {
+				handler = registration.handler
+				break
+			}
+		}
+
+		if handler == nil {
 			// Default handler for unknown templates
 			handler = func(_ []string) string {
 				return `<div style="color:#AAA">No template for "` + templateName + `": ` + fullMatch + `</div>`
