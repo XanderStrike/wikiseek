@@ -129,6 +129,8 @@ func init() {
 	// Register handlers for different infobox types
 	RegisterTemplateHandler("infobox television", infoboxHandler("Television Show Information"))
 	RegisterTemplateHandler("infobox person", infoboxHandler("Personal Information"))
+	RegisterTemplateHandler("infobox award", infoboxHandler("Award Information"))
+	RegisterTemplateHandler("infobox organization", infoboxHandler("Organization Information"))
 
 	// For template handler
 	RegisterTemplateHandler("for", func(args []string) string {
@@ -264,27 +266,35 @@ func init() {
 		return fmt.Sprintf("%s (m. %s - %s)", name, startYear, endDate)
 	})
 
-	// Birth date and age template handler
-	RegisterTemplateHandler("birth date and age", func(args []string) string {
-		if len(args) < 3 {
-			return ""
+	// Date and age template handler for both birth dates and start dates
+	dateAndAgeHandler := func(suffix string) TemplateHandler {
+		return func(args []string) string {
+			if len(args) < 3 {
+				return ""
+			}
+			year := atoi(args[0])
+			month := atoi(args[1])
+			day := atoi(args[2])
+
+			date := fmt.Sprintf("%d-%02d-%02d", year, month, day)
+
+			// Calculate years since date
+			now := time.Now()
+			years := now.Year() - year
+			// Adjust if date hasn't occurred this year
+			if now.Month() < time.Month(month) || (now.Month() == time.Month(month) && now.Day() < day) {
+				years--
+			}
+
+			if suffix == "age" {
+				return fmt.Sprintf("%s (age %d)", date, years)
+			}
+			return fmt.Sprintf("%s (%d %s)", date, years, suffix)
 		}
-		year := atoi(args[0])
-		month := atoi(args[1])
-		day := atoi(args[2])
+	}
 
-		birthDate := fmt.Sprintf("%d-%02d-%02d", year, month, day)
-
-		// Calculate age
-		now := time.Now()
-		age := now.Year() - year
-		// Adjust age if birthday hasn't occurred this year
-		if now.Month() < time.Month(month) || (now.Month() == time.Month(month) && now.Day() < day) {
-			age--
-		}
-
-		return fmt.Sprintf("%s (age %d)", birthDate, age)
-	})
+	RegisterTemplateHandler("birth date and age", dateAndAgeHandler("age"))
+	RegisterTemplateHandler("start date and age", dateAndAgeHandler("years ago"))
 
 }
 
@@ -335,7 +345,7 @@ func ConvertWikiTextToHTML(content string) string {
 		fullMatch    string
 		innerContent string
 	}
-	
+
 	// Find all templates by counting braces
 	var buf strings.Builder
 	var braceLevel int
