@@ -201,7 +201,7 @@ func init() {
 
 	// Templates to completely ignore/skip
 	skip := func(args []string) string { return "" }
-	RegisterTemplateHandler("redirect", skip)
+	RegisterTemplateHandler("redirect.*", skip)
 	RegisterTemplateHandler("good page", skip)
 	RegisterTemplateHandler(`pp\b.*`, skip)
 	RegisterTemplateHandler("use mdy dates", skip)
