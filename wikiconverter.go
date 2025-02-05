@@ -107,10 +107,24 @@ func init() {
 
 		var links []string
 		for _, arg := range args {
-			links = append(links, `<a href="`+arg+`">`+arg+`</a>`)
+			links = append(links, `<a href="/wiki/`+strings.ReplaceAll(arg, " ", "_")+`">`+arg+`</a>`)
 		}
 
-		return `<div class="note">See Also: ` + strings.Join(links, ", ") + `</div>`
+		return `<div class="note">See also: ` + strings.Join(links, ", ") + `</div>`
+	})
+
+	// Main article template handler
+	RegisterTemplateHandler("main article", func(args []string) string {
+		if len(args) == 0 {
+			return ""
+		}
+
+		var links []string
+		for _, arg := range args {
+			links = append(links, `<a href="/wiki/`+strings.ReplaceAll(arg, " ", "_")+`">`+arg+`</a>`)
+		}
+
+		return `<div class="note">Main article: ` + strings.Join(links, ", ") + `</div>`
 	})
 
 	// Other uses template handler
