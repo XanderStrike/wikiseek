@@ -289,7 +289,7 @@ func init() {
 	})
 
 	// Language template handler
-	RegisterTemplateHandler("lang", func(args []string) string {
+	RegisterTemplateHandler(`lang(?:x)?`, func(args []string) string {
 		if len(args) < 2 {
 			return ""
 		}
@@ -323,6 +323,16 @@ func init() {
 		startYear := args[1]
 		endDate := args[2]
 		return fmt.Sprintf("%s (m. %s - %s)", name, startYear, endDate)
+	})
+
+	// Convert template handler - simplified to just show original value and unit
+	RegisterTemplateHandler("convert", func(args []string) string {
+		if len(args) < 2 {
+			return ""
+		}
+		value := args[0]
+		unit := args[1]
+		return value + unit
 	})
 
 	// Date and age template handler for both birth dates and start dates

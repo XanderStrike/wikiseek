@@ -336,7 +336,12 @@ func handlePage(w http.ResponseWriter, r *http.Request, inputFile string, tmpl *
 		if err != nil {
 			data.Error = fmt.Sprintf("Error extracting page text: %v", err)
 		} else {
-			htmlContent := "<pre><code>" + text + "</pre></code>"
+			var htmlContent string
+
+			// Only show raw source if ?source is in URL parameters
+			if r.URL.Query().Has("source") {
+				htmlContent = "<pre><code>" + text + "</pre></code>"
+			}
 
 			htmlContent += ConvertWikiTextToHTML(text)
 			// Check if this is a redirect page
