@@ -187,7 +187,9 @@ func init() {
 
 		return `<table class="infobox">` +
 			`<caption>` + caption + `</caption>` +
+			`<tbody class="infobox-content">` +
 			strings.Join(rows, "") +
+			`</tbody>` +
 			`</table>`
 	})
 
