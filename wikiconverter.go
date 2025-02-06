@@ -168,8 +168,8 @@ func init() {
 		return `<div class="note">Futher information: ` + strings.Join(links, ", ") + `</div>`
 	})
 
-	// Generic infobox handler for any infobox type
-	RegisterTemplateHandler(`infobox\b.*`, func(args []string) string {
+	// Generic infobox/navbox handler for any infobox/navbox type
+	RegisterTemplateHandler(`(infobox|navbox)\b.*`, func(args []string) string {
 		// Extract infobox type from template name
 		caption := "Information"
 		if len(args) > 0 {
@@ -230,6 +230,7 @@ func init() {
 	RegisterTemplateHandler("reflist", skip)
 	RegisterTemplateHandler("update", skip)
 	RegisterTemplateHandler("!", skip)
+	RegisterTemplateHandler("wiktionary", skip)
 
 	// Generic citation handler for any citation type
 	citationHandler := func(args []string) string {
@@ -441,39 +442,35 @@ func ConvertWikiTextToHTML(content string) string {
 
 	// Find all templates by counting braces
 	var buf strings.Builder
-	var braceLevel int
-	inTemplate := false
-	for _, r := range content {
-		switch {
-		case r == '{' && !inTemplate:
-			buf.WriteRune(r)
-			braceLevel++
-			if braceLevel == 2 {
-				inTemplate = true
+	var openBraces int
+	var startPos int
+	for i, r := range content {
+		switch r {
+		case '{':
+			openBraces++
+			if openBraces == 2 {
+				startPos = i + 1
 				buf.Reset()
-				braceLevel = 0
 			}
-		case inTemplate:
-			switch r {
-			case '{':
-				braceLevel++
-			case '}':
-				if braceLevel == 0 {
-					// Found closing brace
-					inTemplate = false
-					templates = append(templates, struct {
-						fullMatch    string
-						innerContent string
-					}{
-						fullMatch:    "{{" + buf.String() + "}}",
-						innerContent: buf.String(),
-					})
-					buf.Reset()
-					continue
-				}
-				braceLevel--
+		case '}':
+			openBraces--
+			if openBraces == 0 && startPos > 0 {
+				// Found a complete template
+				innerContent := content[startPos : i-1]
+				fullMatch := "{{" + innerContent + "}}"
+				templates = append(templates, struct {
+					fullMatch    string
+					innerContent string
+				}{
+					fullMatch:    fullMatch,
+					innerContent: innerContent,
+				})
+				startPos = 0
 			}
-			buf.WriteRune(r)
+		default:
+			if openBraces == 2 {
+				buf.WriteRune(r)
+			}
 		}
 	}
 
